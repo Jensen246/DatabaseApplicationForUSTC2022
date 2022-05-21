@@ -141,10 +141,10 @@ drop table if exists SubBank;
 /*==============================================================*/
 create table Account
 (
-   Account_ID           char(32) not null  comment '',
-   Account_balance      float  comment '',
-   Reg_Date             date  comment '',
-   Reg_Bank             char(32)  comment '',
+   Account_ID           char(32) not null  comment '账户号',
+   Account_balance      float  comment '账户余额',
+   Reg_Date             date  comment '开户日期',
+   Reg_Bank             char(32)  comment '开户行',
    primary key (Account_ID)
 );
 
@@ -218,11 +218,11 @@ create table Customer_Loan
 /*==============================================================*/
 create table Department
 (
-   Department_ID        char(32) not null  comment '',
-   Bank_Name            char(32) not null  comment '',
-   Department_Name      char(32)  comment '',
-   Department_Type      char(32)  comment '',
-   Department_Manager_ID char(16) not null  comment '',
+   Department_ID        char(32) not null  comment '部门ID',
+   Bank_Name            char(32) not null  comment '支行名称',
+   Department_Name      char(32)  comment '部门名称',
+   Department_Type      char(32)  comment '支行类型',
+   Department_Manager_ID char(16) not null  comment '支行经理ID',
    primary key (Department_ID)
 );
 
