@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<nav>
+    <ul>
+    <li><a href="{{ url_for('index') }}">主页</a></li>
+    <li><a href="{{ url_for('index') }}">客户登录</a></li>
+    <li><a href="{{ url_for('index') }}">客户注册</a></li>
+    <li><a href="{{ url_for('index') }}">员工登录</a></li>
+    </ul>
+</nav>
+<p>{{ bank_list|length }} Subbranches</p>
+<ul class="list">
+    {% for bank in bank_list %}
+    <li>{{bank}}
+        <span class="float-right">
+            <a class="yellow_button" href="{{ url_for('index') }}">详细信息</a>
+        </span>
+    </li>
+
+    {% endfor %}
+</ul>
+<!--
+<div align="center" style="position:relative;top:100px">
+    <center><a class="index_button" href="{{ url_for('index') }}">
+    客户登录</a></center>
+</div>
+
+<div align="center" style="position:relative;top:200px">
+    <center><a class="index_button" href="{{ url_for('index') }}">
+
+    客户注册</a></center>
+</div>
+
+<div align="center" style="position:relative;top:300px">
+    <center><a class="index_button" href="{{ url_for('index') }}">
+    员工登录</a></center>
+</div>
+-->
+{% endblock %}

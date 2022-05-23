@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% block head %}
+    <meta charset="UTF-8">
+    <!--meta元素：设置页面视口，让它根据设备的宽度自动缩放-->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bank Application</title>
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" type="text/css">
+    {% endblock %}
+</head>
+<body>
+    <!-- 插入到页面标题上方 -->
+    {% for message in get_flashed_messages() %}
+        <div class="alert">{{ message }}</div>
+    {% endfor %}
+    <h2>
+        <img alt="Yoga" class="Yoga" src="{{ url_for('static', filename='images/Yoga.png') }}">
+        银行业务管理系统
+    </h2>
+    <!--导航栏nav-->
+
+    {% block content %}{% endblock %}
+    <footer>
+        <small>&copy; 2022 <a href="https://github.com/Jensen246">My Github</a></small>
+    </footer>
+</body>
+</html>
