@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<nav>
+    <ul>
+    <li><a href="{{ url_for('index') }}">主页</a></li>
+    <li><a href="{{ url_for('index') }}">客户登录</a></li>
+    <li><a href="{{ url_for('index') }}">客户注册</a></li>
+    <li><a href="{{ url_for('index') }}">员工登录</a></li>
+    </ul>
+</nav>
+
+{{employee_list}}
+<table border="1">
+    <tr>
+        <td>row 1, cell 1</td>
+        <td>row 1, cell 2</td>
+    </tr>
+    <tr>
+        <td>row 2, cell 1</td>
+        <td>row 2, cell 2</td>
+    </tr>
+</table>
+
+<p>{{bank_name}}-{{ employee_list|length }} 名员工</p>
+<ul class="list">
+    <li>姓名
+        <span class="float-right">
+            <a class="yellow_button" href="{{ url_for('sub_bank',bank_name=bank) }}">详情</a>
+        </span>
+    </li>
+    {% for employee in employee_list %}
+    <li>{{employee[0]}}
+        <span class="float-right">
+            <a class="yellow_button" href="{{ url_for('sub_bank',bank_name=bank) }}">详情</a>
+        </span>
+    </li>
+
+    {% endfor %}
+</ul>
+{% endblock %}

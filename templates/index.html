@@ -14,7 +14,7 @@
     {% for bank in bank_list %}
     <li>{{bank}}
         <span class="float-right">
-            <a class="yellow_button" href="{{ url_for('index') }}">详细信息</a>
+            <a class="yellow_button" href="{{ url_for('sub_bank',bank_name=bank) }}">详情</a>
         </span>
     </li>
 

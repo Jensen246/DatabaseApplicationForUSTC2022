@@ -31,7 +31,7 @@ create table CheckAccount
     Reg_Bank        char(32) comment '开户支行',
     Overdraft       float comment '透支额度',
     primary key (Account_ID)
-);
+)DEFAULT CHARSET=utf8;
 
 /*==============================================================*/
 /* Table: Customer                                              */
@@ -49,7 +49,7 @@ create table Customer
     User_Username             char(16)  not null comment '员工账户用户名',
     User_Password             char(128) not null comment '员工账户密码',
     primary key (User_ID)
-);
+)DEFAULT CHARSET=utf8;
 
 /*==============================================================*/
 /* Table: Customer_CheckAccount                                 */
@@ -61,7 +61,7 @@ create table Customer_CheckAccount
     Account_ID     char(32) not null comment '对应的支票账户账户号',
     Last_View_Date date comment '最近访问日期',
     primary key (User_ID, Bank_Name)
-);
+)DEFAULT CHARSET=utf8;
 
 /*==============================================================*/
 /* Table: Customer_DepositAccount                               */
@@ -73,7 +73,7 @@ create table Customer_DepositAccount
     Account_ID     char(32) not null comment '对应的储蓄账户账户号',
     Last_View_Date date comment '最近访问日期',
     primary key (User_ID, Bank_Name)
-);
+)DEFAULT CHARSET=utf8;
 
 /*==============================================================*/
 /* Table: Customer_Loan                                         */
@@ -83,7 +83,7 @@ create table Customer_Loan
     Loan_ID char(16) not null comment '贷款号',
     User_ID char(16) not null comment '用户身份证号码',
     primary key (Loan_ID, User_ID)
-);
+)DEFAULT CHARSET=utf8;
 
 /*==============================================================*/
 /* Table: Department                                            */
@@ -95,8 +95,8 @@ create table Department
     Department_Name       char(32) comment '',
     Department_Type       char(32) comment '',
     Department_Manager_ID char(16) not null comment '',
-    primary key (Department_ID, Bank_Name)
-);
+    primary key (Department_ID)
+)DEFAULT CHARSET=utf8;
 
 /*==============================================================*/
 /* Table: DepositAccount                                        */
@@ -110,7 +110,7 @@ create table DepositAccount
     Interest_Rate   float comment '利率',
     Currency_type   tinyint comment '货币类型',
     primary key (Account_ID)
-);
+)DEFAULT CHARSET=utf8;
 
 /*==============================================================*/
 /* Table: Employee                                              */
@@ -127,7 +127,7 @@ create table Employee
     Employee_Password    char(128) not null comment '员工账户密码',
     Is_Manager           tinyint   not null comment '经理标识',
     primary key (Employee_ID)
-);
+)DEFAULT CHARSET=utf8;
 
 /*==============================================================*/
 /* Table: Employee_Customer                                     */
@@ -138,7 +138,7 @@ create table Employee_Customer
     User_ID      char(16) not null comment '用户身份证号码',
     Service_Type char(32) comment '服务类型',
     primary key (Employee_ID, User_ID)
-);
+)DEFAULT CHARSET=utf8;
 
 /*==============================================================*/
 /* Table: Loan                                                  */
@@ -150,7 +150,7 @@ create table Loan
     Loan_Money  float comment '贷款额度',
     Loan_Status tinyint comment '发放状态',
     primary key (Loan_ID)
-);
+)DEFAULT CHARSET=utf8;
 
 /*==============================================================*/
 /* Table: Payment                                               */
@@ -161,7 +161,7 @@ create table Payment
     Pay_Date  date comment '支付日期',
     Pay_Money float comment '支付金额',
     primary key (Loan_ID)
-);
+)DEFAULT CHARSET=utf8;
 
 /*==============================================================*/
 /* Table: SubBank                                               */
@@ -172,7 +172,7 @@ create table SubBank
     Bank_City     char(32) comment '支行所在城市',
     Bank_Property float DEFAULT 0.0 comment '支行资产',
     primary key (Bank_Name)
-);
+)DEFAULT CHARSET=utf8;
 
 /*alter table CheckAccount
     add constraint FK_CHECKACC_ACCOUNT_C_ACCOUNT foreign key (Account_ID)
