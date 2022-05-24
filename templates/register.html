@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<nav>
+    <ul>
+        <li><a href="{{ url_for('index') }}">主页</a></li>
+        <li><a href="{{ url_for('login_customer') }}">客户登录</a></li>
+        <li><a href="{{ url_for('register') }}">客户注册</a></li>
+        <li><a href="{{ url_for('login_employee') }}">员工登录</a></li>
+    </ul>
+</nav>
+
+
+<center>
+    <div class="big_wrap"><!--登录框的最外部的框框-->
+        <div class="title"><!--账号密码字体存放的div-->
+            新用户注册
+        </div>
+        <form action="" method="post" id="form"> <!--账号密码登录的一个from表单-->
+            <input type="text" class="input" placeholder="身份证号" name="user_id" required/>
+            <div class="infor">
+                身份证号为5位整数
+            </div>
+            <input type="text" class="input" placeholder="姓名" name="user_name" required/>
+            <div class="infor">
+                姓名长度必须为2至30位
+            </div>
+            <input type="text" class="input" placeholder="电话号码" name="user_phonenumber" required/>
+            <div class="infor">
+                电话号码必须为6至11位整数
+            </div>
+            <input type="text" class="input" placeholder="联系地址" name="user_address" required/>
+            <div class="infor">
+                地址长度必须为5至60位
+            </div>
+            <input type="text" class="input" placeholder="联系人姓名" name="user_contacts_name" required/>
+            <div class="infor">
+                名字长度必须为2至30位
+            </div>
+            <input type="text" class="input" placeholder="联系人电话" name="user_contacts_phonenumber" required/>
+            <div class="infor">
+                电话号码必须为6至11位整数
+            </div>
+            <input type="text" class="input" placeholder="联系人邮箱" name="user_contacts_email" required/>
+            <div class="infor">
+                邮箱格式必须正确
+            </div>
+            <input type="text" class="input" placeholder="与联系人关系" name="user_contacts_relation" required/>
+            <div class="infor">
+                输入的关系必须为1到7位
+            </div>
+            <input type="text" class="input" placeholder="您用于登录的用户名" name="username" required/>
+            <div class="infor">
+                用户名不可以为空
+            </div>
+            <input type="text" class="input" placeholder="登录密码" name="password" required/>
+            <div class="infor">
+                密码长度必须为5至12位
+            </div>
+            <input type="text" class="input" placeholder="请将刚才输入的密码重复一遍" name="password_rep" required/>
+
+
+            <input class="login_btn" type="submit" name="submit" value="Submit">
+            <!--简单来讲就是一个大的方块（wrap）包含了title，infor，from三大块的信息，from中又包含了账号，密码，登录三个块块-->
+
+            {% if err_message %}
+                <p style="color: red">{{ err_message }}</p>
+            {% endif %}
+        </form>
+
+    </div>
+</center>
+
+{% endblock %}

@@ -17,4 +17,4 @@ def db_connection():
     # 使用cursor()方法获取操作游标
     cursor = db.cursor()
 
-    return cursor
+    return cursor, db

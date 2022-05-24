@@ -10,32 +10,24 @@
     </ul>
 </nav>
 
-{{employee_list}}
-<table border="1">
+<p>{{bank_name}}-{{ employee_list|length }} 名员工</p>
+
+<table class="gridtable">
+
     <tr>
-        <td>row 1, cell 1</td>
-        <td>row 1, cell 2</td>
+        <th>姓名</th>
+        <th>部门</th>
+        <th>电话号码</th>
+        <th>工作岗位</th>
     </tr>
+    {% for employee in employee_list %}
     <tr>
-        <td>row 2, cell 1</td>
-        <td>row 2, cell 2</td>
+        <td><center>{{employee[0]}}</center></td>
+        <td><center>{{employee[1]}}</center></td>
+        <td><center>{{employee[2]}}</center></td>
+        <td><center>{{employee[3]}}</center></td>
     </tr>
+    {% endfor %}
 </table>
 
-<p>{{bank_name}}-{{ employee_list|length }} 名员工</p>
-<ul class="list">
-    <li>姓名
-        <span class="float-right">
-            <a class="yellow_button" href="{{ url_for('sub_bank',bank_name=bank) }}">详情</a>
-        </span>
-    </li>
-    {% for employee in employee_list %}
-    <li>{{employee[0]}}
-        <span class="float-right">
-            <a class="yellow_button" href="{{ url_for('sub_bank',bank_name=bank) }}">详情</a>
-        </span>
-    </li>
-
-    {% endfor %}
-</ul>
 {% endblock %}

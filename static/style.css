@@ -92,7 +92,7 @@ input[name=year] {
 }
 
 .list li:last-child {
-    border-bottom:none;
+    border-bottom: none;
 }
 
 .list li:hover {
@@ -105,6 +105,30 @@ input[name=year] {
 
 .inline-form {
     display: inline;
+}
+
+/* 表格 */
+table.gridtable {
+    width: 100%;
+    margin-bottom: 10px;
+    caption-side: top;
+    line-height: 50px;
+    border-collapse: collapse;
+    box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.16), 0 2px 10px 0 rgba(0, 0, 0, 0.12);
+}
+
+table.gridtable tr {
+    width: 100%;
+    padding: 12px 24px;
+    border-bottom: 1px solid #ddd;
+}
+
+table.gridtable tr:last-child {
+    border-bottom: none;
+}
+
+table.gridtable tr:hover {
+    background-color: #f8f9fa;
 }
 
 .yellow_button {
@@ -127,7 +151,128 @@ input[name=year] {
 /* 页脚 */
 footer {
     color: #888;
-    margin-top: 300px;
+    margin-top: 100px;
     text-align: center;
     padding: 10px;
+}
+
+
+.wrap {
+    margin-top: 100px;
+    width: 414px;
+    height: 250px;
+    border: solid rgb(238, 238, 238) 2px;
+    background-color: white;
+    /*margin: 0px auto;*/
+}
+
+.wrap .title {
+    margin-top: 15px;
+    margin-bottom: 16px;
+    font-size: 20px;
+    color: rgb(51, 51, 51);
+    text-align: center; /*居中*/
+
+}
+
+.wrap .infor {
+    text-align: center;
+    color: #666;
+    font-size: 16px;
+    margin-bottom: 36px;
+
+}
+
+.wrap .infor a {
+    text-decoration: none;
+    color: #3481cf;
+}
+
+.wrap #form {
+    text-align: center;
+    height: 150px;
+    width: 272px;
+    margin: 0px auto;
+
+}
+
+.wrap #form .input {
+    height: 38px;
+    width: 268px;
+    box-sizing: border-box;
+    padding: 10px;
+    padding-right: 0px;
+    margin-bottom: 17px;
+    border-radius: 3px;
+    border: solid black 1px;
+}
+
+
+.login_btn {
+    border-radius: 3px;
+    height: 37px;
+    width: 258px;
+    padding: 1px 7px 2px 7px;
+    box-sizing: content-box;
+    border: none;
+    background-color: black;
+    color: white;
+    font-size: 17px;
+}
+
+.login_btn:hover {
+    text-decoration: none;
+    background-color: black;
+    color: white;
+    border: 1px solid black;
+}
+
+.big_wrap {
+    margin-top: 50px;
+    width: 414px;
+    height: 900px;
+    border: solid rgb(238, 238, 238) 2px;
+    background-color: white;
+    /*margin: 0px auto;*/
+}
+
+.big_wrap .title {
+    margin-top: 20px;
+    margin-bottom: 16px;
+    font-size: 20px;
+    color: rgb(51, 51, 51);
+    text-align: center; /*居中*/
+
+}
+
+.big_wrap .infor {
+    text-align: center;
+    color: #666;
+    font-size: 10px;
+    margin-top: -16px;
+    margin-bottom: 10px;
+}
+
+.big_wrap .infor a {
+    text-decoration: none;
+    color: #3481cf;
+}
+
+.big_wrap #form {
+    text-align: center;
+    height: 150px;
+    width: 272px;
+    margin: 0px auto;
+
+}
+
+.big_wrap #form .input {
+    height: 38px;
+    width: 268px;
+    box-sizing: border-box;
+    padding: 10px;
+    padding-right: 0px;
+    margin-bottom: 17px;
+    border-radius: 3px;
+    border: solid black 1px;
 }
