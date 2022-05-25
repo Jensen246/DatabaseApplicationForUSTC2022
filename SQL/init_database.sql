@@ -148,7 +148,7 @@ create table Loan
     Loan_ID     char(16) not null comment '贷款号',
     Bank_Name   char(32) not null comment '发放支行名',
     Loan_Money  float comment '贷款额度',
-    Loan_Status tinyint comment '发放状态',
+    Loan_Status tinyint DEFAULT 0 comment '发放状态',
     primary key (Loan_ID)
 )DEFAULT CHARSET=utf8;
 
@@ -160,7 +160,7 @@ create table Payment
     Loan_ID   char(16) not null comment '支付对应的贷款号',
     Pay_Date  date comment '支付日期',
     Pay_Money float comment '支付金额',
-    primary key (Loan_ID)
+    primary key (Loan_ID, Pay_Date)
 )DEFAULT CHARSET=utf8;
 
 /*==============================================================*/

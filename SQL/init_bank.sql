@@ -8,12 +8,12 @@ from Department
 where Department_ID is not NULL;
 
 # 银行初始化
-insert into SubBank(Bank_City, Bank_Name)
-values ("合肥", "合肥西支行");
-insert into SubBank(Bank_City, Bank_Name)
-values ("合肥", "合肥东支行");
-insert into SubBank(Bank_City, Bank_Name)
-values ("上海", "上海总部");
+insert into SubBank(Bank_City, Bank_Name, Bank_Property)
+values ("合肥", "合肥西支行", 300000000);
+insert into SubBank(Bank_City, Bank_Name, Bank_Property)
+values ("合肥", "合肥东支行", 400000000);
+insert into SubBank(Bank_City, Bank_Name, Bank_Property)
+values ("上海", "上海总部", 500000000);
 select *
 from SubBank;
 # 部门初始化
