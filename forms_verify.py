@@ -1,16 +1,23 @@
 from wtforms import Form, StringField, IntegerField, FileField, validators
 from wtforms.validators import ValidationError, Length, EqualTo, Email, InputRequired, Regexp, NumberRange, URL, UUID
-from flask_wtf.file import FileRequired, FileAllowed
+from email_validator import validate_email
+import re  # 正则表达式验证
 
-""" 表单验证 """
+simple_type = {  # 客户属性
+    "User_ID": "id", "User_Name": "name", "User_PhoneNumber": "phone",
+    "User_Address": "address", "User_Contacts_Name": "name", "User_Contacts_PhoneNumber": "phone",
+    "User_Contacts_Email": "email", "User_Contacts_Relation": "relation",
+    # 员工属性
+    "Employee_ID": "id", "Employee_Name": "name", "Employee_PhoneNumber": "phone", "Employee_Address": "address",
+}
 
 
-class RegisterForm(Form):  # 继承自Form
+class RegisterForm(Form):  # 继承自Form，整个表单的验证
     """注册表单验证"""
     # validators:验证器，可多个，列表形式表示
 
     # 用户身份证号，5位整数
-    user_id = StringField(validators=[Regexp(r'^[0-9]{5}$', message="身份证号为5位整数")])
+    user_id = StringField(validators=[Regexp(r'^[0-9]{5}$', message="身份证号必须为5位整数")])
     # 用户姓名，名字长度必须为2至30位
     user_name = StringField(validators=[Length(min=2, max=30, message="名字长度必须为2至30位")])
     # 电话号码验证，6到11位整数，手机号验证可以用：StringField(validators=[Regexp(r'1[34578]\d{9}', message='手机号格式错误')])
@@ -34,14 +41,46 @@ class RegisterForm(Form):  # 继承自Form
     password_rep = StringField(validators=[EqualTo('password', message="两次密码输入必须一致")])
 
 
-class LoginForm(Form):
-    """ 登录表单验证 """
-    username = StringField(validators=[Length(min=6, max=12, message="用户名长度必须为6至12位")])
-    pwd = StringField(validators=[Length(min=6, max=12, message="密码长度必须为6至12位")])
-
-    captcha = StringField(validators=[Length(4, 4, message="验证码错误")])
-
-    def validate_captcha(self, filed):
-        """这里方法名必须validate_字段名，假设验证码为9850"""
-        if filed.data != "9850":
-            raise ValidationError("验证码错误")
+def verify_edit(edit_type, verify_item):
+    """
+    验证单个属性，使用于编辑单个属性时
+    :param edit_type: 编辑的类型
+    :param verify_item: 待验证的数据
+    :return: True通过，False不通过
+    """
+    # 身份证号
+    if edit_type == "id":
+        if verify_item.isdigit() and len(verify_item) == 5:
+            return True
+        else:
+            return False
+    # 姓名
+    elif edit_type == "name":
+        if 2 <= len(verify_item) <= 30:
+            return True
+        else:
+            return False
+    # 电话号码
+    elif edit_type == "phone":
+        if re.match(r'^\d{6,11}$', verify_item):
+            return True
+        else:
+            return False
+    # 地址
+    elif edit_type == "address":
+        if 5 <= len(verify_item) <= 60:
+            return True
+        else:
+            return False
+    # 邮箱
+    elif edit_type == "email":
+        if validate_email(verify_item):
+            return True
+        else:
+            return False
+    # 关系
+    elif edit_type == "relation":
+        if 1 <= len(verify_item) <= 7:
+            return True
+        else:
+            return False

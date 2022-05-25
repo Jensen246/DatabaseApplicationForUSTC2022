@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<nav>
+    <ul>
+        <li><a href="{{ url_for('index_customer', username=username) }}">支行信息</a></li>
+        <li><a href="{{ url_for('info_customer', username=username) }}">个人信息</a></li>
+        <li><a href="{{ url_for('index') }}">账户管理</a></li>
+        <li><a href="{{ url_for('index') }}">贷款管理</a></li>
+        <li><a href="{{ url_for('logout') }}">登出</a></li>
+    </ul>
+</nav>
+<span>
+    <p style="font-size:20px;font-weight: bold; margin-top: 10px">个人信息</p>
+    <p style="text-align: right; margin-right: 38px; margin-top: -30px">
+        <a class="delete_btn" href="{{ url_for('info_customer', username=username) }}"
+           onclick="return confirm('确定要注销账户吗？')">注销账户</a>
+    </p>
+</span>
+
+<small><p style="color: gray;margin-top: -20px;margin-bottom: 20px"> 点击"编辑"修改条目</p></small>
+<table class="gridtable">
+    <tr>
+        <th>身份证号</th>
+        <td>{{ customer_data[0] }}</td>
+        <td>&nbsp;</a></td>
+    </tr>
+    <tr>
+        <th>姓名</th>
+        <td>{{ customer_data[1] }}</td>
+        <td><a class="btn"
+               href="{{ url_for('edit_customer_info', username=username, edit_type='User_Name') }}">编辑</a></td>
+    </tr>
+    <tr>
+        <th>联系电话</th>
+        <td>{{ customer_data[2] }}</td>
+        <td><a class="btn"
+               href="{{ url_for('edit_customer_info', username=username, edit_type='User_PhoneNumber') }}">编辑</a></td>
+    </tr>
+    <tr>
+        <th>地址</th>
+        <td>{{ customer_data[3] }}</td>
+        <td><a class="btn"
+               href="{{ url_for('edit_customer_info', username=username, edit_type='User_Address') }}">编辑</a></td>
+    </tr>
+    <tr>
+        <th>联系人姓名</th>
+        <td>{{ customer_data[4] }}</td>
+        <td><a class="btn"
+               href="{{ url_for('edit_customer_info', username=username, edit_type='User_Contacts_Name') }}">编辑</a></td>
+    </tr>
+    <tr>
+        <th>联系人电话</th>
+        <td>{{ customer_data[5] }}</td>
+        <td><a class="btn"
+               href="{{ url_for('edit_customer_info', username=username, edit_type='User_Contacts_PhoneNumber') }}">编辑</a></td>
+    </tr>
+    <tr>
+        <th>联系人邮箱</th>
+        <td>{{ customer_data[6] }}</td>
+        <td><a class="btn"
+               href="{{ url_for('edit_customer_info', username=username, edit_type='User_Contacts_Email') }}">编辑</a></td>
+    </tr>
+    <tr>
+        <th>本人与联系人关系</th>
+        <td>{{ customer_data[7] }}</td>
+    <td><a class="btn"
+               href="{{ url_for('edit_customer_info', username=username, edit_type='User_Contacts_Relation') }}">编辑</a></td>
+    </tr>
+    <tr>
+        <th>用户名</th>
+        <td>{{ customer_data[8] }}</td>
+        <td>&nbsp;</td>
+    </tr>
+    <tr>
+        <th>密码</th>
+        <td>******</td>
+        <td><a class="btn" href="{{ url_for('edit_customer_password', username=username) }}">修改密码</a></td>
+    </tr>
+</table>
+
+
+{% endblock %}

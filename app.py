@@ -1,8 +1,8 @@
 from flask import Flask, request, render_template, flash, redirect, url_for, session
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_login import LoginManager, UserMixin
+# from LoginManage import *
 from DbProcess import *
-from forms_verify import RegisterForm
+from forms_verify import *
 from functools import wraps
 
 app = Flask(__name__)
@@ -62,7 +62,7 @@ def index_customer(username):
     if not current_user or current_user != username:
         flash('非法请求，跳转到初始页')
         return redirect(url_for('index'))
-    return render_template('index_customer.html', bank_list=bank_list)
+    return render_template('index_customer.html', bank_list=bank_list, username=username)
 
 
 # 员工登录后主界面，可以看到所有银行的当前资产
@@ -77,7 +77,7 @@ def index_employee(username):
     bank_list_secret = []
     for line in bank_data_secret:
         bank_list_secret.append([line[0], line[1]])
-    return render_template('index_employee.html', bank_list=bank_list_secret)
+    return render_template('index_employee.html', bank_list=bank_list_secret, username=username)
 
 
 # 支行详情列表
@@ -132,7 +132,7 @@ def login_employee():
         if check_password_hash(true_password[0][0], password):
             session['username'] = username
             flash('登录成功')
-            return redirect(url_for('index_employee'), username=username)
+            return redirect(url_for('index_employee', username=username))
         flash('密码错误')
         return redirect(url_for('login_employee'))
     return render_template('login_employee.html')
@@ -218,18 +218,9 @@ def register():
         cursor.execute(sql_str)
         db.commit()
         flash("注册成功，自动跳转到登录界面")
+
         return redirect(url_for('login_customer'))
     return render_template('register.html')
-
-
-@app.route('/customer_index/<username>')
-def customer_index():
-    return render_template('customer_index.html')
-
-
-@app.route('/employee_index/<username>')
-def employee_index():
-    return render_template('employee_index.html')
 
 
 # 登出界面
@@ -238,6 +229,135 @@ def logout():
     session.pop('username', None)
     flash('登出成功')
     return redirect(url_for('index'))
+
+
+@app.route('/customer_index/<username>')
+def customer_index(username):
+    return render_template('customer_index.html', methods=['GET', 'POST'])
+
+
+@app.route('/employee_index/<username>')
+def employee_index(username):
+    return render_template('employee_index.html')
+
+
+@app.route('/info_customer/<username>')
+def info_customer(username):
+    sql_str = "select * from customer where User_Username = \'" + username + "\'"
+    cursor.execute(sql_str)
+    customer_data = cursor.fetchall()[0]
+    return render_template('info_customer.html', customer_data=customer_data, username=username)
+
+
+@app.route('/info_employee/<username>')
+def info_employee(username):
+    sql_str = "select * from employee where Employee_Username = \'" + username + "\'"
+    cursor.execute(sql_str)
+    employee_data = cursor.fetchall()[0]
+    employee_data = list(employee_data)
+    if employee_data[8]:
+        employee_data[8] = '经理'
+    else:
+        employee_data[8] = '普通员工'
+    sql_str = "select * from department"
+    cursor.execute(sql_str)
+    department_data = cursor.fetchall()
+    for department in department_data:
+        if department[0] == employee_data[1]:
+            temp = department
+    return render_template('info_employee.html', employee_data=employee_data, username=username, department=temp)
+
+
+@app.route('/edit_customer_info/<username>/<edit_type>', methods=['GET', 'POST'])
+def edit_customer_info(username, edit_type):
+    sql_str = "select * from customer where User_Username = \'" + username + "\'"
+    cursor.execute(sql_str)
+    customer_data = cursor.fetchall()[0]
+
+    if request.method == 'POST':
+        changed_data = request.form['changed_data']
+        if not verify_edit(simple_type[edit_type], changed_data):
+            flash("输入不符合格式要求！")
+            return redirect(url_for('edit_customer_info', username=username, edit_type=edit_type))
+        changed_data = changed_data.replace('\'', '\\\'')
+        sql_str = "update customer set " + edit_type + " = \'" + changed_data + "\'" + \
+                  "where User_Username = \'" + username + "\'"
+        cursor.execute(sql_str)
+        db.commit()
+        flash("修改成功，跳转回个人信息页")
+
+        sql_str = "select * from customer where User_Username = \'" + username + "\'"
+        cursor.execute(sql_str)
+        customer_data = cursor.fetchall()[0]
+        return redirect(url_for('info_customer', username=username))
+    return render_template('edit_customer_info.html',
+                           username=username, edit_type=edit_type, customer_data=customer_data)
+
+
+@app.route('/edit_customer_password/<username>', methods=['GET', 'POST'])
+def edit_customer_password(username):
+    if request.method == 'POST':
+        old_password = request.form['old_password']
+        new_password = request.form['new_password']
+        rep_password = request.form['rep_password']
+
+        sql_str = "select User_Password from customer where User_Username =" + '\'' + username + '\''
+        cursor.execute(sql_str)
+        true_password = cursor.fetchall()
+        if not true_password[0][0] == old_password :
+            if not check_password_hash(true_password[0][0],old_password):
+                flash('旧密码不正确')
+                return redirect(url_for('edit_customer_password', username=username))
+        if not 5 <= len(new_password) <= 12:
+            flash('新密码格式不符合要求')
+            return redirect(url_for('edit_customer_password', username=username))
+        if new_password != rep_password:
+            flash('两次输入的新密码不一致')
+            return redirect(url_for('edit_customer_password', username=username))
+        new_password_hashed = generate_password_hash(new_password)
+        new_password_hashed = new_password_hashed.replace('\'', '\\\'')
+        sql_str = "update customer set User_Password = \'" + new_password_hashed + "\'" + \
+                  "where User_Username = \'" + username + "\'"
+        cursor.execute(sql_str)
+        db.commit()
+
+        flash("修改成功，跳转到登录界面")
+        session.pop('username', None)
+        return redirect(url_for('login_customer'))
+    return render_template('edit_customer_password.html', username=username)
+
+
+@app.route('/edit_employee_password/<username>', methods=['GET', 'POST'])
+def edit_employee_password(username):
+    if request.method == 'POST':
+        old_password = request.form['old_password']
+        new_password = request.form['new_password']
+        rep_password = request.form['rep_password']
+
+        sql_str = "select Employee_Password from employee where Employee_Username =" + '\'' + username + '\''
+        cursor.execute(sql_str)
+        true_password = cursor.fetchall()
+        if not true_password[0][0] == old_password :
+            if not check_password_hash(true_password[0][0],old_password):
+                flash('旧密码不正确')
+                return redirect(url_for('edit_employee_password', username=username))
+        if not 5 <= len(new_password) <= 12:
+            flash('新密码格式不符合要求')
+            return redirect(url_for('edit_employee_password', username=username))
+        if new_password != rep_password:
+            flash('两次输入的新密码不一致')
+            return redirect(url_for('edit_employee_password', username=username))
+        new_password_hashed = generate_password_hash(new_password)
+        new_password_hashed = new_password_hashed.replace('\'', '\\\'')
+        sql_str = "update employee set Employee_Password = \'" + new_password_hashed + "\'" + \
+                  "where Employee_Username = \'" + username + "\'"
+        cursor.execute(sql_str)
+        db.commit()
+
+        flash("修改成功，跳转到登录界面")
+        session.pop('username', None)
+        return redirect(url_for('login_employee'))
+    return render_template('edit_employee_password.html', username=username)
 
 
 if __name__ == '__main__':

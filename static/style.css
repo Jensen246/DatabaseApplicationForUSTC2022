@@ -151,7 +151,7 @@ table.gridtable tr:hover {
 /* 页脚 */
 footer {
     color: #888;
-    margin-top: 100px;
+    margin-top: 180px;
     text-align: center;
     padding: 10px;
 }
@@ -275,4 +275,22 @@ footer {
     margin-bottom: 17px;
     border-radius: 3px;
     border: solid black 1px;
+}
+
+.delete_btn {
+    font-size: 12px;
+    padding: 3px 5px;
+    text-decoration: none;
+    cursor: pointer;
+    background-color: white;
+    color: black;
+    border: 1px solid #555555;
+    border-radius: 5px;
+}
+
+.delete_btn:hover {
+    text-decoration: none;
+    background-color: orangered;
+    color: white;
+    border: 1px solid orangered;
 }

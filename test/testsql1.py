@@ -1,10 +1,12 @@
 from DbProcess import *
 
 cursor, db = db_connection()
-name = 'jensen'
-sql_str = 'select User_Username from customer where User_Username = \'' + name + '\''
+
+username = 'dahai'
+sql_str = "select * from customer where User_Username = \'" + username + "\'"
 cursor.execute(sql_str)
-data = cursor.fetchall()
+data = cursor.fetchall()[0]
+
 print(data)
 print(len(data))
 if len(data):
