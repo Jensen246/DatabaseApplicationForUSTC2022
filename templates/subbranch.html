@@ -3,14 +3,14 @@
 {% block content %}
 <nav>
     <ul>
-    <li><a href="{{ url_for('index') }}">主页</a></li>
-    <li><a href="{{ url_for('index') }}">客户登录</a></li>
-    <li><a href="{{ url_for('index') }}">客户注册</a></li>
-    <li><a href="{{ url_for('index') }}">员工登录</a></li>
+
     </ul>
 </nav>
 
-<p>{{bank_name}}-{{ employee_list|length }} 名员工</p>
+<big>
+    <p>{{bank_name}} - {{ employee_list|length }} 名员工</p>
+</big>
+
 
 <table class="gridtable">
 
