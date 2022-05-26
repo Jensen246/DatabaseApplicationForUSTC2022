@@ -9,7 +9,7 @@
         <li><a href="{{ url_for('info_employee',username=username) }}">我的信息</a></li>
         <li><a href="{{ url_for('index') }}">贷款管理</a></li>
         <li><a href="{{ url_for('index') }}">业务统计</a></li>
-        <li><a href="{{ url_for('logout') }}">登出</a></li>
+        <li><a href="{{ url_for('logout', username=username) }}">登出</a></li>
     </ul>
 </nav>
 <p style="font-size:20px;font-weight: bold; margin-top: 10px">个人信息</p>

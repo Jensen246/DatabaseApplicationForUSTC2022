@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <nav>
+        <ul>
+            <li><a href="{{ url_for('index_customer', username=username) }}">支行信息</a></li>
+            <li><a href="{{ url_for('info_customer', username=username) }}">个人信息</a></li>
+            <li>
+                <div class="dropdown">
+                    <a href="#" class="dropbtn">账户管理</a>
+                    <div class="dropdown-content">
+                        <a href="{{ url_for('index_customer', username=username) }}">储蓄账户</a>
+                        <a href="{{ url_for('check_account_customer', username=username) }}">支票账户</a>
+                    </div>
+                </div>
+            </li>
+
+            <li><a href="{{ url_for('index') }}">贷款管理</a></li>
+            <li><a href="{{ url_for('logout', username=username) }}">登出</a></li>
+        </ul>
+    </nav>
+
+    <span>
+        <p style="font-size:20px;font-weight: bolder; margin-top: 10px">支票账户</p>
+        <p style="text-align: right; margin-right: 38px; margin-top: -30px">
+        <a class="btn" href="{{ url_for('open_check_account', username=username) }}"
+           onclick="return confirm('您只能在每个支行开一个支票账户，进行开户之前请先确认')">开户</a>
+    </p>
+    </span>
+
+    <small><p style="color: gray;margin-top: -20px;margin-bottom: 20px"> 支持开户、销户、储蓄以及取款，余额为负则表示已透支的数额</p></small>
+
+    {% if have_check_account == True %}
+        <p style="text-align: center; font-size: 15px; font-weight: bolder; color: #333">
+            您有 {{ check_account_data|length }} 个支票账户
+        </p>
+        {% for check_account in check_account_data %}
+            <table class="gridtable">
+                <tr>
+                    <th>账户号</th>
+                    <td>{{ check_account[0] }}</td>
+                    <td>
+                        <a class="delete_btn"
+                           href="{{ url_for('edit_customer_info', username=username, edit_type='User_Name') }}">
+                            销户
+                        </a>
+                    </td>
+                </tr>
+                <tr>
+                    <th>余额</th>
+                    <td>{{ check_account[1] }}</td>
+                    <td>
+                        <a class="btn"
+                           href="{{ url_for('edit_customer_info', username=username, edit_type='User_Name') }}">
+                            储蓄
+                        </a>
+                        <br>
+                        <a class="btn"
+                           href="{{ url_for('edit_customer_info', username=username, edit_type='User_Name') }}">
+                            取款
+                        </a>
+                    </td>
+                    {# 储蓄/取款 #}
+                </tr>
+                <tr>
+                    <th>开户日期</th>
+                    <td>{{ check_account[2] }}</td>
+                    <td>&nbsp;</td>
+                </tr>
+                <tr>
+                    <th>开户支行</th>
+                    <td>{{ check_account[3] }}</td>
+                    <td>&nbsp;</td>
+                </tr>
+                <tr>
+                    <th>透支额度</th>
+                    <td>{{ check_account[4] }}</td>
+                    <td>&nbsp;</td>
+                </tr>
+            </table>
+        {% endfor %}
+    {% else %}
+        <p style="text-align: center; font-size: 16px; font-weight: bolder; color: #333; margin-top: 100px">
+            您还没有支票账户，点击右上角选择“开户”
+        </p>
+    {% endif %}
+
+{% endblock %}

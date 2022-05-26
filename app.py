@@ -4,6 +4,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from DbProcess import *
 from forms_verify import *
 from functools import wraps
+import copy
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = '123456'
@@ -16,6 +17,9 @@ bank_list = []
 for d in bank_data:
     bank_list.append(d[0])
 
+cursor.execute("select curdate()")
+date = cursor.fetchall()[0][0]
+date = str(date)
 
 def return_err_message(template, form):
     """
@@ -51,6 +55,7 @@ def login_required():
 # 初始页面
 @app.route('/')
 def index():
+    flash(bank_list)
     flash("您还没有登录,请先登录或注册")
     return render_template('index.html', bank_list=bank_list)
 
@@ -58,8 +63,8 @@ def index():
 # 客户登录后的主界面
 @app.route('/index_customer/<username>')
 def index_customer(username):
-    current_user = session.get('username')
-    if not current_user or current_user != username:
+    permission = session.get(username)
+    if not permission:
         flash('非法请求，跳转到初始页')
         return redirect(url_for('index'))
     return render_template('index_customer.html', bank_list=bank_list, username=username)
@@ -68,8 +73,8 @@ def index_customer(username):
 # 员工登录后主界面，可以看到所有银行的当前资产
 @app.route('/index_employee/<username>')
 def index_employee(username):
-    current_user = session.get('username')
-    if not current_user or current_user != username:
+    permission = session.get(username)
+    if not permission:
         flash('非法请求，跳转到初始页')
         return redirect(url_for('index'))
     cursor.execute("select Bank_Name,Bank_Property from subbank")
@@ -126,11 +131,11 @@ def login_employee():
             flash('用户名错误')
             return redirect(url_for('login_employee'))
         if true_password[0][0] == password:
-            session['username'] = username
+            session[username] = True
             flash('登录成功，但初始密码很不安全，建议前往个人信息页修改密码')
             return redirect(url_for('index_employee', username=username))
         if check_password_hash(true_password[0][0], password):
-            session['username'] = username
+            session[username] = True
             flash('登录成功')
             return redirect(url_for('index_employee', username=username))
         flash('密码错误')
@@ -158,11 +163,11 @@ def login_customer():
             flash('用户名错误')
             return redirect(url_for('login_customer'))
         if true_password[0][0] == password:
-            session['username'] = username
+            session[username] = True
             flash('登录成功，但初始密码很不安全，建议前往个人信息页修改密码')
             return redirect(url_for('index_customer', username=username))
         if check_password_hash(true_password[0][0], password):
-            session['username'] = username
+            session[username] = True
             flash('登录成功')
             return redirect(url_for('index_customer', username=username))
         flash('密码错误')
@@ -224,25 +229,37 @@ def register():
 
 
 # 登出界面
-@app.route('/logout')
-def logout():
-    session.pop('username', None)
+@app.route('/logout/<username>')
+def logout(username):
+    session.pop(username)
     flash('登出成功')
     return redirect(url_for('index'))
 
 
 @app.route('/customer_index/<username>')
 def customer_index(username):
+    permission = session.get(username)
+    if not permission:
+        flash('非法请求，跳转到初始页')
+        return redirect(url_for('index'))
     return render_template('customer_index.html', methods=['GET', 'POST'])
 
 
 @app.route('/employee_index/<username>')
 def employee_index(username):
+    permission = session.get(username)
+    if not permission:
+        flash('非法请求，跳转到初始页')
+        return redirect(url_for('index'))
     return render_template('employee_index.html')
 
 
 @app.route('/info_customer/<username>')
 def info_customer(username):
+    permission = session.get(username)
+    if not permission:
+        flash('非法请求，跳转到初始页')
+        return redirect(url_for('index'))
     sql_str = "select * from customer where User_Username = \'" + username + "\'"
     cursor.execute(sql_str)
     customer_data = cursor.fetchall()[0]
@@ -251,6 +268,10 @@ def info_customer(username):
 
 @app.route('/info_employee/<username>')
 def info_employee(username):
+    permission = session.get(username)
+    if not permission:
+        flash('非法请求，跳转到初始页')
+        return redirect(url_for('index'))
     sql_str = "select * from employee where Employee_Username = \'" + username + "\'"
     cursor.execute(sql_str)
     employee_data = cursor.fetchall()[0]
@@ -270,6 +291,10 @@ def info_employee(username):
 
 @app.route('/edit_customer_info/<username>/<edit_type>', methods=['GET', 'POST'])
 def edit_customer_info(username, edit_type):
+    permission = session.get(username)
+    if not permission:
+        flash('非法请求，跳转到初始页')
+        return redirect(url_for('index'))
     sql_str = "select * from customer where User_Username = \'" + username + "\'"
     cursor.execute(sql_str)
     customer_data = cursor.fetchall()[0]
@@ -296,6 +321,10 @@ def edit_customer_info(username, edit_type):
 
 @app.route('/edit_customer_password/<username>', methods=['GET', 'POST'])
 def edit_customer_password(username):
+    permission = session.get(username)
+    if not permission:
+        flash('非法请求，跳转到初始页')
+        return redirect(url_for('index'))
     if request.method == 'POST':
         old_password = request.form['old_password']
         new_password = request.form['new_password']
@@ -304,8 +333,8 @@ def edit_customer_password(username):
         sql_str = "select User_Password from customer where User_Username =" + '\'' + username + '\''
         cursor.execute(sql_str)
         true_password = cursor.fetchall()
-        if not true_password[0][0] == old_password :
-            if not check_password_hash(true_password[0][0],old_password):
+        if not true_password[0][0] == old_password:
+            if not check_password_hash(true_password[0][0], old_password):
                 flash('旧密码不正确')
                 return redirect(url_for('edit_customer_password', username=username))
         if not 5 <= len(new_password) <= 12:
@@ -322,13 +351,17 @@ def edit_customer_password(username):
         db.commit()
 
         flash("修改成功，跳转到登录界面")
-        session.pop('username', None)
+        session.pop(username)
         return redirect(url_for('login_customer'))
     return render_template('edit_customer_password.html', username=username)
 
 
 @app.route('/edit_employee_password/<username>', methods=['GET', 'POST'])
 def edit_employee_password(username):
+    permission = session.get(username)
+    if not permission:
+        flash('非法请求，跳转到初始页')
+        return redirect(url_for('index'))
     if request.method == 'POST':
         old_password = request.form['old_password']
         new_password = request.form['new_password']
@@ -337,8 +370,8 @@ def edit_employee_password(username):
         sql_str = "select Employee_Password from employee where Employee_Username =" + '\'' + username + '\''
         cursor.execute(sql_str)
         true_password = cursor.fetchall()
-        if not true_password[0][0] == old_password :
-            if not check_password_hash(true_password[0][0],old_password):
+        if not true_password[0][0] == old_password:
+            if not check_password_hash(true_password[0][0], old_password):
                 flash('旧密码不正确')
                 return redirect(url_for('edit_employee_password', username=username))
         if not 5 <= len(new_password) <= 12:
@@ -355,13 +388,18 @@ def edit_employee_password(username):
         db.commit()
 
         flash("修改成功，跳转到登录界面")
-        session.pop('username', None)
+        session.pop(username)
         return redirect(url_for('login_employee'))
     return render_template('edit_employee_password.html', username=username)
 
 
 @app.route('/delete_customer/<username>')
 def delete_customer(username):
+    permission = session.get(username)
+    if not permission:
+        flash('非法请求，跳转到初始页')
+        return redirect(url_for('index'))
+
     flag = True
     sql_str = "select User_ID from customer where User_Username = \'" + username + "\'"
     cursor.execute(sql_str)
@@ -393,9 +431,129 @@ def delete_customer(username):
     cursor.execute(sql_str)
     db.commit()
     flash("注销成功，跳转到主界面")
-    session.pop('username', None)
+    session.pop(username)
     return redirect(url_for('index'))
 
+
+@app.route('/check_account_customer/<username>')
+def check_account_customer(username):
+    permission = session.get(username)
+    if not permission:
+        flash('非法请求，跳转到初始页')
+        return redirect(url_for('index'))
+
+    have_check_account = False
+
+    sql_str = "select Account_ID from customer inner join customer_checkaccount cc on customer.User_ID = cc.User_ID " \
+              "where User_Username = \'" + username + "\'"
+    cursor.execute(sql_str)
+    temp_id_list = cursor.fetchall()
+    check_account_id_list = []
+    for temp_id in temp_id_list:
+        check_account_id_list.append(temp_id[0])
+
+    check_account_data = []
+    if len(check_account_id_list):
+        have_check_account = True
+        for check_account_id in check_account_id_list:
+            sql_str = "select * from checkaccount where Account_ID = \'" + check_account_id + "\'"
+            cursor.execute(sql_str)
+            check_account_data.append(cursor.fetchall()[0])
+        # flash(check_account_data)
+        return render_template('check_account_customer.html', username=username,
+                               have_check_account=have_check_account, check_account_data=check_account_data)
+    else:
+        return render_template('check_account_customer.html', username=username,
+                               have_check_account=have_check_account, check_account_data=check_account_data)
+
+
+@app.route('/open_check_account/<username>', methods=['GET', 'POST'])
+def open_check_account(username):
+    permission = session.get(username)
+    if not permission:
+        flash('非法请求，跳转到初始页')
+        return redirect(url_for('index'))
+
+    sql_str = "select Bank_Name from customer inner join customer_checkaccount cc on customer.User_ID = cc.User_ID " \
+              "where User_Username = \'" + username + "\'"
+    cursor.execute(sql_str)
+    temp_bank_list = cursor.fetchall()
+    open_bank_list = []
+    for temp_bank in temp_bank_list:
+        open_bank_list.append(temp_bank[0])
+
+    if len(open_bank_list) == len(bank_list):
+        flash("您已经在所有支行都注册了支票账户，无法再注册新账户")
+        return redirect(url_for('check_account_customer', username=username))
+
+    option_bank_list = copy.deepcopy(bank_list)  # python中直接用等号不是拷贝而是等价
+    for item in open_bank_list:
+        option_bank_list.remove(item)
+
+    employee_dict = {}
+    for option_bank in option_bank_list:
+        employee_dict[option_bank] = []
+        sql_str = "select Employee_Name,Employee_PhoneNumber,Is_Manager from employee " \
+                  "inner join department d on employee.Department_ID = d.Department_ID " \
+                  "inner join subbank s on d.Bank_Name = s.Bank_Name " \
+                  "where d.Department_Name =\'客服部\' and d.Bank_Name = \'" + option_bank + "\'"
+        cursor.execute(sql_str)
+        option_employee_list = cursor.fetchall()
+        for option_employee in option_employee_list:
+            option_employee = list(option_employee)
+            if option_employee[2] == 1:
+                option_employee[2] = "经理"
+            else:
+                option_employee[2] = "员工"
+            employee_dict[option_bank].append(option_employee)
+
+    return render_template('open_check_account.html', username=username,
+                           option_bank_list=option_bank_list, employee_dict=employee_dict, bank_list=bank_list)
+
+
+@app.route('/build_check_account/<username>_<employee>_<bank>')
+def build_check_account(username, employee, bank):
+    sql_str = "select User_ID from customer where User_Username = \'" + username + "\'"
+    cursor.execute(sql_str)
+    user_id = cursor.fetchall()[0][0]
+
+    sql_str = "select Employee_ID from employee where Employee_Name = \'" + employee + "\'"
+    cursor.execute(sql_str)
+    employee_id = cursor.fetchall()[0][0]
+
+    sql_str = "select Account_ID from checkaccount"
+    cursor.execute(sql_str)
+    account_id_temp_list = cursor.fetchall()
+    account_id_list = []
+    # 获取ck后的数字位
+    for item in account_id_temp_list:
+        account_id_list.append(int(item[0][2:]))
+    new_account_id = "ck" + str(max(account_id_list) + 1)
+
+    sql_str = "insert into checkaccount " \
+              "value (\'" + new_account_id + "\', 0, \'" + date + "\',\'" + bank + "\', 20000)"
+    cursor.execute(sql_str)
+    db.commit()
+
+    sql_str = "insert into customer_checkaccount " \
+              "value (\'" + user_id + "\',\'" + bank + "\',\'" + new_account_id + "\',\'" + date + "\')"
+    cursor.execute(sql_str)
+    db.commit()
+
+    sql_str = "insert into employee_customer value (\'" + employee_id + "\',\'" + user_id + "\',\'ck\')"
+    cursor.execute(sql_str)
+    db.commit()
+
+    flash("支票账户开户成功，跳转支票账户界面")
+    return redirect(url_for('check_account_customer', username=username))
+
+
+"""@app.route('check_account_withdraw/<username>')
+def check_account_withdraw(username):
+    permission = session.get(username)
+    if not permission:
+        flash('非法请求，跳转到初始页')
+        return redirect(url_for('index'))"""
 
 if __name__ == '__main__':
     app.run(debug=True)

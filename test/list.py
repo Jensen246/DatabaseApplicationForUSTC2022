@@ -1,2 +1,5 @@
-list = 	('301', '大牛', '799103', 1)
-print(list[3])
+a = [1, 2, 3]
+b = [1]
+for i in b:
+    a.remove(i)
+print(a)
