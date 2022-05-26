@@ -51,15 +51,17 @@
                     <th>余额</th>
                     <td>{{ check_account[1] }}</td>
                     <td>
-                        <a class="btn"
-                           href="{{ url_for('check_account_save', username=username, account_id=check_account[0]) }}">
-                            储蓄
-                        </a>
+                        <form method="post">
+                        <p style="margin-right: -110px; margin-bottom: -15px; margin-top: -5px">
+                            <input type="text" class="input"  placeholder="在此输入存款金额" name="amount" required/>
+                        </p>
+                        <input class="btn" type="submit" name="submit" value="提交">
                         <br>
                         <a class="btn"
                            href="{{ url_for('check_account_withdraw', username=username, account_id=check_account[0]) }}">
                             取款
                         </a>
+                        </form>
                     </td>
                     {# 储蓄/取款 #}
                 </tr>

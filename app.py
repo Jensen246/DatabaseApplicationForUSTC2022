@@ -21,6 +21,7 @@ cursor.execute("select curdate()")
 date = cursor.fetchall()[0][0]
 date = str(date)
 
+
 def return_err_message(template, form):
     """
     将返回错误提示信息功能抽离出来单独作为一个函数
@@ -513,6 +514,10 @@ def open_check_account(username):
 
 @app.route('/build_check_account/<username>_<employee>_<bank>')
 def build_check_account(username, employee, bank):
+    permission = session.get(username)
+    if not permission:
+        flash('非法请求，跳转到初始页')
+        return redirect(url_for('index'))
     sql_str = "select User_ID from customer where User_Username = \'" + username + "\'"
     cursor.execute(sql_str)
     user_id = cursor.fetchall()[0][0]
@@ -548,12 +553,129 @@ def build_check_account(username, employee, bank):
     return redirect(url_for('check_account_customer', username=username))
 
 
-"""@app.route('check_account_withdraw/<username>')
-def check_account_withdraw(username):
+@app.route('/delete_check_account/<username>_<check_account_id>_')
+def delete_check_account(username, check_account_id):
     permission = session.get(username)
     if not permission:
         flash('非法请求，跳转到初始页')
-        return redirect(url_for('index'))"""
+        return redirect(url_for('index'))
+    sql_str = "select User_ID from customer where User_Username = \'" + username + "\'"
+    cursor.execute(sql_str)
+    user_id = cursor.fetchall()[0][0]
+
+    sql_str = "select Account_balance,Reg_Bank from checkaccount where Account_ID = \'" + check_account_id + "\'"
+    cursor.execute(sql_str)
+    balance, bank = cursor.fetchall()[0]
+
+    sql_str = "select Employee_ID from employee " \
+              "inner join department d on employee.Department_ID = d.Department_ID " \
+              "inner join subbank s on d.Bank_Name = s.Bank_Name " \
+              "inner join customer_checkaccount cc on s.Bank_Name = cc.Bank_Name " \
+              "where d.Bank_Name = \'" + bank + "\' and User_ID = \'" + user_id + "\'"
+    cursor.execute(sql_str)
+    employee_id = cursor.fetchall()[0][0]
+
+    if balance < 0:
+        flash('您有透支额，不允许销户')
+        return redirect(url_for('check_account_customer', username=username))
+    sql_str = "delete from employee_customer where User_ID = \'" + user_id + "\' and Employee_ID = \'" + employee_id + "\'"
+    cursor.execute(sql_str)
+    db.commit()
+    sql_str = "delete from customer_checkaccount where User_ID = \'" + user_id + "\' and Bank_Name = \'" + bank + "\'"
+    cursor.execute(sql_str)
+    db.commit()
+    sql_str = "delete from checkaccount where Account_ID = \'" + check_account_id + "\'"
+    cursor.execute(sql_str)
+    db.commit()
+    flash('销户成功')
+    return redirect(url_for('check_account_customer', username=username))
+
+
+@app.route('/check_account_withdraw/<username>_<account_id>', methods=['GET', 'POST'])
+def check_account_withdraw(username, account_id):
+    permission = session.get(username)
+    if not permission:
+        flash('非法请求，跳转到初始页')
+        return redirect(url_for('index'))
+
+    have_check_account = False
+
+    sql_str = "select Account_ID from customer inner join customer_checkaccount cc on customer.User_ID = cc.User_ID " \
+              "where User_Username = \'" + username + "\'"
+    cursor.execute(sql_str)
+    temp_id_list = cursor.fetchall()
+    check_account_id_list = []
+    for temp_id in temp_id_list:
+        check_account_id_list.append(temp_id[0])
+
+    check_account_data = []
+    if len(check_account_id_list):
+        have_check_account = True
+        for check_account_id in check_account_id_list:
+            sql_str = "select * from checkaccount where Account_ID = \'" + check_account_id + "\'"
+            cursor.execute(sql_str)
+            check_account_data.append(cursor.fetchall()[0])
+
+    if request.method == 'POST':
+        amount = request.form['amount']
+        if not amount.isdigit():
+            flash("非法输入，请输入数字")
+            return redirect(url_for('check_account_withdraw', username=username, account_id=account_id))
+        elif float(amount) < 0:
+            flash("非法输入，请输入正数")
+            return redirect(url_for('check_account_withdraw', username=username, account_id=account_id))
+        sql_str = "update checkaccount set Account_balance = Account_balance - " + amount
+        cursor.execute(sql_str)
+        db.commit()
+        flash('取款成功')
+        return redirect(url_for('check_account_customer', username=username))
+
+    return render_template("check_account_withdraw.html", username=username, account_id=account_id,
+                           have_check_account=have_check_account, check_account_data=check_account_data)
+
+
+@app.route('/check_account_save/<username>_<account_id>', methods=['GET', 'POST'])
+def check_account_save(username, account_id):
+    permission = session.get(username)
+    if not permission:
+        flash('非法请求，跳转到初始页')
+        return redirect(url_for('index'))
+
+    have_check_account = False
+
+    sql_str = "select Account_ID from customer inner join customer_checkaccount cc on customer.User_ID = cc.User_ID " \
+              "where User_Username = \'" + username + "\'"
+    cursor.execute(sql_str)
+    temp_id_list = cursor.fetchall()
+    check_account_id_list = []
+    for temp_id in temp_id_list:
+        check_account_id_list.append(temp_id[0])
+
+    check_account_data = []
+    if len(check_account_id_list):
+        have_check_account = True
+        for check_account_id in check_account_id_list:
+            sql_str = "select * from checkaccount where Account_ID = \'" + check_account_id + "\'"
+            cursor.execute(sql_str)
+            check_account_data.append(cursor.fetchall()[0])
+
+    if request.method == 'POST':
+        amount = request.form['amount']
+        if not amount.isdigit():
+            flash("非法输入，请输入数字")
+            return redirect(url_for('check_account_save', username=username, account_id=account_id))
+        elif float(amount) < 0:
+            flash("非法输入，请输入正数")
+            return redirect(url_for('check_account_save', username=username, account_id=account_id))
+        sql_str = "update checkaccount set Account_balance = Account_balance + " + amount
+        cursor.execute(sql_str)
+        db.commit()
+        flash('存款成功')
+        return redirect(url_for('check_account_customer', username=username))
+
+    return render_template("check_account_save.html", username=username, account_id=account_id,
+                           have_check_account=have_check_account, check_account_data=check_account_data)
+
 
 if __name__ == '__main__':
     app.run(debug=True)

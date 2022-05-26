@@ -56,10 +56,16 @@
                             储蓄
                         </a>
                         <br>
-                        <a class="btn"
-                           href="{{ url_for('check_account_withdraw', username=username, account_id=check_account[0]) }}">
-                            取款
-                        </a>
+                        <form method="post">
+                        <p style="margin-right: -110px; margin-top: -5px; margin-bottom: -30px">
+                            <input type="text" class="input" width="20px" placeholder="在此输入取款金额" name="amount"
+                                   required/>
+                        </p>
+                        <p style="margin-right: -50px">
+                            <input class="btn" type="submit" name="submit" value="提交">
+                        </p>
+                        </form>
+
                     </td>
                     {# 储蓄/取款 #}
                 </tr>
