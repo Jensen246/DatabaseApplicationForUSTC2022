@@ -5,7 +5,16 @@
     <ul>
         <li><a href="{{ url_for('index_customer', username=username) }}">支行信息</a></li>
         <li><a href="{{ url_for('info_customer', username=username) }}">个人信息</a></li>
-        <li><a href="{{ url_for('index') }}">账户管理</a></li>
+        <li>
+            <div class="dropdown">
+            <a href="#" class="dropbtn">账户管理</a>
+            <div class="dropdown-content">
+                <a href="#">储蓄账户</a>
+                <a href="#">支票账户</a>
+            </div>
+        </div>
+        </li>
+
         <li><a href="{{ url_for('index') }}">贷款管理</a></li>
         <li><a href="{{ url_for('logout') }}">登出</a></li>
     </ul>
@@ -33,7 +42,7 @@
                 <input type="text" class="input" placeholder="在此输入改变后的新值" name="changed_data" required/>
             </td>
             <td>
-                <input class="btn" type="submit" name="submit" value="Submit">
+                <input class="btn" type="submit" name="submit" value="提交">
             </td>
         </form>
         {% else %}
@@ -50,7 +59,7 @@
                 <input type="text" class="input" placeholder="在此输入改变后的新值" name="changed_data" required/>
             </td>
             <td>
-                <input class="btn" type="submit" name="submit" value="Submit">
+                <input class="btn" type="submit" name="submit" value="提交">
             </td>
         </form>
         {% else %}
@@ -67,7 +76,7 @@
                 <input type="text" class="input" placeholder="在此输入改变后的新值" name="changed_data" required/>
             </td>
             <td>
-                <input class="btn" type="submit" name="submit" value="Submit">
+                <input class="btn" type="submit" name="submit" value="提交">
             </td>
         </form>
         {% else %}
@@ -84,7 +93,7 @@
                 <input type="text" class="input" placeholder="在此输入改变后的新值" name="changed_data" required/>
             </td>
             <td>
-                <input class="btn" type="submit" name="submit" value="Submit">
+                <input class="btn" type="submit" name="submit" value="提交">
             </td>
         </form>
         {% else %}
@@ -101,7 +110,7 @@
                 <input type="text" class="input" placeholder="在此输入改变后的新值" name="changed_data" required/>
             </td>
             <td>
-                <input class="btn" type="submit" name="submit" value="Submit">
+                <input class="btn" type="submit" name="submit" value="提交">
             </td>
         </form>
         {% else %}
@@ -119,7 +128,7 @@
                 <input type="text" class="input" placeholder="在此输入改变后的新值" name="changed_data" required/>
             </td>
             <td>
-                <input class="btn" type="submit" name="submit" value="Submit">
+                <input class="btn" type="submit" name="submit" value="提交">
             </td>
         </form>
         {% else %}
@@ -137,7 +146,7 @@
                 <input type="text" class="input" placeholder="在此输入改变后的新值" name="changed_data" required/>
             </td>
             <td>
-                <input class="btn" type="submit" name="submit" value="Submit">
+                <input class="btn" type="submit" name="submit" value="提交">
             </td>
         </form>
         {% else %}
