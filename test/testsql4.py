@@ -1,4 +1,4 @@
-from LoginManage import *
+from trashbin.LoginManage import *
 
 username = 'dahai'
 password = '12345678'

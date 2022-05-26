@@ -360,5 +360,42 @@ def edit_employee_password(username):
     return render_template('edit_employee_password.html', username=username)
 
 
+@app.route('/delete_customer/<username>')
+def delete_customer(username):
+    flag = True
+    sql_str = "select User_ID from customer where User_Username = \'" + username + "\'"
+    cursor.execute(sql_str)
+    user_id = cursor.fetchall()[0][0]
+
+    sql_str = "select Account_ID from customer_checkaccount where User_ID = \'" + user_id + "\'"
+    cursor.execute(sql_str)
+    flag_data = cursor.fetchall()
+    if len(flag_data):
+        flag = False
+
+    sql_str = "select Account_ID from customer_depositaccount where User_ID = \'" + user_id + "\'"
+    cursor.execute(sql_str)
+    flag_data = cursor.fetchall()
+    if len(flag_data):
+        flag = False
+
+    sql_str = "select Loan_ID from customer_loan where User_ID = \'" + user_id + "\'"
+    cursor.execute(sql_str)
+    flag_data = cursor.fetchall()
+    if len(flag_data):
+        flag = False
+
+    if not flag:
+        flash("不满足注销用户条件：存在关联账户或贷款记录")
+        return redirect(url_for('info_customer', username=username))
+
+    sql_str = "delete from customer where User_ID = \'" + user_id + "\'"
+    cursor.execute(sql_str)
+    db.commit()
+    flash("注销成功，跳转到主界面")
+    session.pop('username', None)
+    return redirect(url_for('index'))
+
+
 if __name__ == '__main__':
     app.run(debug=True)
