@@ -9,7 +9,7 @@
             <div class="dropdown">
             <a href="#" class="dropbtn">账户管理</a>
             <div class="dropdown-content">
-                <a href="{{ url_for('index_customer', username=username) }}">储蓄账户</a>
+                <a href="{{ url_for('deposit_account_customer', username=username) }}">储蓄账户</a>
                 <a href="{{ url_for('check_account_customer', username=username) }}">支票账户</a>
             </div>
         </div>

@@ -21,74 +21,73 @@
     </nav>
 
     <span>
-        <p style="font-size:20px;font-weight: bolder; margin-top: 10px">支票账户</p>
+        <p style="font-size:20px;font-weight: bolder; margin-top: 10px">储蓄账户</p>
         <p style="text-align: right; margin-right: 38px; margin-top: -30px">
-        <a class="btn" href="{{ url_for('open_check_account', username=username) }}"
-           onclick="return confirm('您只能在每个支行开一个支票账户，进行开户之前请先确认')">开户</a>
+        <a class="btn" href="{{ url_for('open_deposit_account', username=username) }}"
+           onclick="return confirm('您只能在每个支行开一个储蓄账户，进行开户之前请先确认')">开户</a>
     </p>
     </span>
 
-    <small><p style="color: gray;margin-top: -20px;margin-bottom: 20px"> 支持开户、销户、储蓄以及取款，余额为负则表示已透支的数额</p></small>
+    <small><p style="color: gray;margin-top: -20px;margin-bottom: 20px"> 支持开户、销户、储蓄以及取款</p></small>
 
-    {% if have_check_account == True %}
+    {% if have_deposit_account == True %}
         <p style="text-align: center; font-size: 15px; font-weight: bolder; color: #333">
-            您有 {{ check_account_data|length }} 个支票账户
+            您有 {{ deposit_account_data|length }} 个储蓄账户
         </p>
-        {% for check_account in check_account_data %}
+        {% for deposit_account in deposit_account_data %}
             <table class="gridtable">
                 <tr>
                     <th>账户号</th>
-                    <td>{{ check_account[0] }}</td>
+                    <td>{{ deposit_account[0] }}</td>
                     <td>
                         <a class="delete_btn"
-                           href="{{ url_for('delete_check_account', username=username, check_account_id=check_account[0]) }}"
-                           onclick="return confirm('只有余额大于0（没有透支情况）才可以销户，您确定吗')">
+                           href="{{ url_for('delete_deposit_account', username=username, deposit_account_id=deposit_account[0]) }}"
+                           onclick="return confirm('您确定吗')">
                             销户
                         </a>
                     </td>
                 </tr>
                 <tr>
                     <th>余额</th>
-                    <td>{{ check_account[1] }}</td>
+                    <td>{{ deposit_account[1] }}</td>
                     <td>
                         <a class="btn"
-                           href="{{ url_for('check_account_save', username=username, account_id=check_account[0]) }}">
+                           href="{{ url_for('deposit_account_save', username=username, account_id=deposit_account[0]) }}">
                             储蓄
                         </a>
                         <br>
-                        <form method="post">
-                        <p style="margin-right: -110px; margin-top: -5px; margin-bottom: -30px">
-                            <input type="text" class="input" width="20px" placeholder="在此输入取款金额" name="amount"
-                                   required/>
-                        </p>
-                        <p style="margin-right: -50px">
-                            <input class="btn" type="submit" name="submit" value="提交">
-                        </p>
-                        </form>
-
+                        <a class="btn"
+                           href="{{ url_for('deposit_account_withdraw', username=username, account_id=deposit_account[0]) }}">
+                            取款
+                        </a>
                     </td>
                     {# 储蓄/取款 #}
                 </tr>
                 <tr>
                     <th>开户日期</th>
-                    <td>{{ check_account[2] }}</td>
+                    <td>{{ deposit_account[2] }}</td>
                     <td>&nbsp;</td>
                 </tr>
                 <tr>
                     <th>开户支行</th>
-                    <td>{{ check_account[3] }}</td>
+                    <td>{{ deposit_account[3] }}</td>
                     <td>&nbsp;</td>
                 </tr>
                 <tr>
-                    <th>透支额度</th>
-                    <td>{{ check_account[4] }}</td>
+                    <th>利率</th>
+                    <td>{{ deposit_account[4] }}</td>
+                    <td>&nbsp;</td>
+                </tr>
+                <tr>
+                    <th>币种</th>
+                    <td>{{ deposit_account[5] }}</td>
                     <td>&nbsp;</td>
                 </tr>
             </table>
         {% endfor %}
     {% else %}
         <p style="text-align: center; font-size: 16px; font-weight: bolder; color: #333; margin-top: 100px">
-            您还没有支票账户，点击右上角选择“开户”
+            您还没有储蓄账户，点击右上角选择“开户”
         </p>
     {% endif %}
 

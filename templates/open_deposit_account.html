@@ -19,10 +19,10 @@
         </ul>
     </nav>
 
-    <p style="font-size:20px;font-weight: bolder; margin-top: 10px">支票账户 - 开户</p>
+    <p style="font-size:20px;font-weight: bolder; margin-top: 10px">储蓄账户 - 开户</p>
     <small>
         <p style="color: gray;margin-top: -20px;margin-bottom: 20px">
-            您需要绑定一位员工作为您的支票账户负责人，初始透支额度为两万，可以联系对应支行的员工修改
+            您需要绑定一位员工作为您的储蓄账户负责人
         </p>
     </small>
 
@@ -45,7 +45,7 @@
                     <td><center>{{ employee[2] }}</center></td>
                     <td><center>
                         <a class="btn"
-                           href="{{ url_for('build_check_account', username=username, employee=employee[0], bank=bank) }}">
+                           href="{{ url_for('build_deposit_account', username=username, employee=employee[0], bank=bank) }}">
                             选择
                         </a>
                     </center></td>

@@ -56,7 +56,7 @@ def login_required():
 # 初始页面
 @app.route('/')
 def index():
-    flash(bank_list)
+    # flash(bank_list)
     flash("您还没有登录,请先登录或注册")
     return render_template('index.html', bank_list=bank_list)
 
@@ -123,7 +123,7 @@ def login_employee():
         password = password.replace('\'', '\\\'')
 
         if not username or not password:
-            flash('Invalid input.')
+            flash('用户名或密码不能为空，请重新输入')
             return redirect(url_for('login_employee'))
         sql_str = "select Employee_Password from employee where Employee_Username =" + '\'' + username + '\''
         cursor.execute(sql_str)
@@ -154,7 +154,7 @@ def login_customer():
         password = password.replace('\'', '\\\'')
 
         if not username or not password:
-            flash('Invalid input.')
+            flash('用户名或密码不能为空，请重新输入')
             return redirect(url_for('login_employee'))
         sql_str = "select User_Password from customer where user_Username =" + '\'' + username + '\''
         cursor.execute(sql_str)
@@ -608,6 +608,10 @@ def check_account_withdraw(username, account_id):
     for temp_id in temp_id_list:
         check_account_id_list.append(temp_id[0])
 
+    sql_str = "select Account_balance, Overdraft from checkaccount where Account_ID =\'" + account_id + "\'"
+    cursor.execute(sql_str)
+    balance, overdraft = cursor.fetchall()[0]
+
     check_account_data = []
     if len(check_account_id_list):
         have_check_account = True
@@ -619,10 +623,13 @@ def check_account_withdraw(username, account_id):
     if request.method == 'POST':
         amount = request.form['amount']
         if not amount.isdigit():
-            flash("非法输入，请输入数字")
+            flash("非法输入，取款失败，请输入数字")
             return redirect(url_for('check_account_withdraw', username=username, account_id=account_id))
         elif float(amount) < 0:
-            flash("非法输入，请输入正数")
+            flash("非法输入，取款失败，请输入正数")
+            return redirect(url_for('check_account_withdraw', username=username, account_id=account_id))
+        elif balance - float(amount) < - overdraft:
+            flash("透支额到达限度，取款失败")
             return redirect(url_for('check_account_withdraw', username=username, account_id=account_id))
         sql_str = "update checkaccount set Account_balance = Account_balance - " + amount
         cursor.execute(sql_str)
@@ -675,6 +682,260 @@ def check_account_save(username, account_id):
 
     return render_template("check_account_save.html", username=username, account_id=account_id,
                            have_check_account=have_check_account, check_account_data=check_account_data)
+
+
+# 客户端储蓄账户详情页
+@app.route('/deposit_account_customer/<username>')
+def deposit_account_customer(username):
+    permission = session.get(username)
+    if not permission:
+        flash('非法请求，跳转到初始页')
+        return redirect(url_for('index'))
+
+    have_deposit_account = False
+
+    # 根据用户名查询储蓄账户ID
+    sql_str = "select Account_ID from customer inner join customer_depositaccount cd on customer.User_ID = cd.User_ID " \
+              "where User_Username = \'" + username + "\'"
+    cursor.execute(sql_str)
+    temp_id_list = cursor.fetchall()
+    deposit_account_id_list = []
+    for temp_id in temp_id_list:
+        deposit_account_id_list.append(temp_id[0])  # 该用户的储蓄账户ID列表
+
+    deposit_account_data = []
+    if len(deposit_account_id_list):
+        have_deposit_account = True
+        for deposit_account_id in deposit_account_id_list:
+            # 账户ID，余额，开户日期，利率，货币种类
+            sql_str = "select * from depositaccount where Account_ID = \'" + deposit_account_id + "\'"
+            cursor.execute(sql_str)
+            deposit_temp_data = cursor.fetchall()[0]
+            deposit_temp_data = list(deposit_temp_data)
+            if deposit_temp_data[5] == 0:
+                deposit_temp_data[5] = "人民币"
+            if deposit_temp_data[5] == 1:
+                deposit_temp_data[5] = "美元"
+            if deposit_temp_data[5] == 2:
+                deposit_temp_data[5] = "欧元"
+            if deposit_temp_data[5] == 3:
+                deposit_temp_data[5] = "日元"
+            deposit_account_data.append(deposit_temp_data)
+        # flash(deposit_account_data)
+        return render_template('deposit_account_customer.html', username=username,
+                               have_deposit_account=have_deposit_account, deposit_account_data=deposit_account_data)
+    else:
+        return render_template('deposit_account_customer.html', username=username,
+                               have_deposit_account=have_deposit_account, deposit_account_data=deposit_account_data)
+
+
+@app.route('/open_deposit_account/<username>', methods=['GET', 'POST'])
+def open_deposit_account(username):
+    permission = session.get(username)
+    if not permission:
+        flash('非法请求，跳转到初始页')
+        return redirect(url_for('index'))
+
+    sql_str = "select Bank_Name from customer inner join customer_depositaccount cd on customer.User_ID = cd.User_ID " \
+              "where User_Username = \'" + username + "\'"
+    cursor.execute(sql_str)
+    temp_bank_list = cursor.fetchall()
+    open_bank_list = []
+    for temp_bank in temp_bank_list:
+        open_bank_list.append(temp_bank[0])
+
+    if len(open_bank_list) == len(bank_list):
+        flash("您已经在所有支行都注册了储蓄账户，无法再注册新账户")
+        return redirect(url_for('deposit_account_customer', username=username))
+
+    option_bank_list = copy.deepcopy(bank_list)  # python中直接用等号不是拷贝而是等价
+    for item in open_bank_list:
+        option_bank_list.remove(item)
+
+    employee_dict = {}
+    for option_bank in option_bank_list:
+        employee_dict[option_bank] = []
+        sql_str = "select Employee_Name,Employee_PhoneNumber,Is_Manager from employee " \
+                  "inner join department d on employee.Department_ID = d.Department_ID " \
+                  "inner join subbank s on d.Bank_Name = s.Bank_Name " \
+                  "where d.Department_Name =\'客服部\' and d.Bank_Name = \'" + option_bank + "\'"
+        cursor.execute(sql_str)
+        option_employee_list = cursor.fetchall()
+        for option_employee in option_employee_list:
+            option_employee = list(option_employee)
+            if option_employee[2] == 1:
+                option_employee[2] = "经理"
+            else:
+                option_employee[2] = "员工"
+            employee_dict[option_bank].append(option_employee)
+
+    return render_template('open_deposit_account.html', username=username,
+                           option_bank_list=option_bank_list, employee_dict=employee_dict, bank_list=bank_list)
+
+
+@app.route('/build_deposit_account/<username>_<employee>_<bank>')
+def build_deposit_account(username, employee, bank):
+    permission = session.get(username)
+    if not permission:
+        flash('非法请求，跳转到初始页')
+        return redirect(url_for('index'))
+    sql_str = "select User_ID from customer where User_Username = \'" + username + "\'"
+    cursor.execute(sql_str)
+    user_id = cursor.fetchall()[0][0]
+
+    sql_str = "select Employee_ID from employee where Employee_Name = \'" + employee + "\'"
+    cursor.execute(sql_str)
+    employee_id = cursor.fetchall()[0][0]
+
+    sql_str = "select Account_ID from depositaccount"
+    cursor.execute(sql_str)
+    account_id_temp_list = cursor.fetchall()
+    account_id_list = []
+    # 获取ck后的数字位
+    for item in account_id_temp_list:
+        account_id_list.append(int(item[0][2:]))
+    new_account_id = "ck" + str(max(account_id_list) + 1)
+
+    sql_str = "insert into depositaccount " \
+              "value (\'" + new_account_id + "\', 0, \'" + date + "\',\'" + bank + "\', 20000)"
+    cursor.execute(sql_str)
+    db.commit()
+
+    sql_str = "insert into customer_depositaccount " \
+              "value (\'" + user_id + "\',\'" + bank + "\',\'" + new_account_id + "\',\'" + date + "\')"
+    cursor.execute(sql_str)
+    db.commit()
+
+    sql_str = "insert into employee_customer value (\'" + employee_id + "\',\'" + user_id + "\',\'ck\')"
+    cursor.execute(sql_str)
+    db.commit()
+
+    flash("开户成功，跳转回储蓄账户界面")
+    return redirect(url_for('deposit_account_customer', username=username))
+
+
+@app.route('/delete_deposit_account/<username>_<deposit_account_id>_')
+def delete_deposit_account(username, deposit_account_id):
+    permission = session.get(username)
+    if not permission:
+        flash('非法请求，跳转到初始页')
+        return redirect(url_for('index'))
+    sql_str = "select User_ID from customer where User_Username = \'" + username + "\'"
+    cursor.execute(sql_str)
+    user_id = cursor.fetchall()[0][0]
+
+    sql_str = "select Account_balance,Reg_Bank from depositaccount where Account_ID = \'" + deposit_account_id + "\'"
+    cursor.execute(sql_str)
+    balance, bank = cursor.fetchall()[0]
+
+    sql_str = "select Employee_ID from employee " \
+              "inner join department d on employee.Department_ID = d.Department_ID " \
+              "inner join subbank s on d.Bank_Name = s.Bank_Name " \
+              "inner join customer_depositaccount cc on s.Bank_Name = cc.Bank_Name " \
+              "where d.Bank_Name = \'" + bank + "\' and User_ID = \'" + user_id + "\'"
+    cursor.execute(sql_str)
+    employee_id = cursor.fetchall()[0][0]
+
+    if balance < 0:
+        flash('您有透支额，不允许销户')
+        return redirect(url_for('deposit_account_customer', username=username))
+    sql_str = "delete from employee_customer where User_ID = \'" + user_id + "\' and Employee_ID = \'" + employee_id + "\'"
+    cursor.execute(sql_str)
+    db.commit()
+    sql_str = "delete from customer_depositaccount where User_ID = \'" + user_id + "\' and Bank_Name = \'" + bank + "\'"
+    cursor.execute(sql_str)
+    db.commit()
+    sql_str = "delete from depositaccount where Account_ID = \'" + deposit_account_id + "\'"
+    cursor.execute(sql_str)
+    db.commit()
+    flash('销户成功')
+    return redirect(url_for('deposit_account_customer', username=username))
+
+
+@app.route('/deposit_account_withdraw/<username>_<account_id>', methods=['GET', 'POST'])
+def deposit_account_withdraw(username, account_id):
+    permission = session.get(username)
+    if not permission:
+        flash('非法请求，跳转到初始页')
+        return redirect(url_for('index'))
+
+    have_deposit_account = False
+
+    sql_str = "select Account_ID from customer inner join customer_depositaccount cc on customer.User_ID = cc.User_ID " \
+              "where User_Username = \'" + username + "\'"
+    cursor.execute(sql_str)
+    temp_id_list = cursor.fetchall()
+    deposit_account_id_list = []
+    for temp_id in temp_id_list:
+        deposit_account_id_list.append(temp_id[0])
+
+    deposit_account_data = []
+    if len(deposit_account_id_list):
+        have_deposit_account = True
+        for deposit_account_id in deposit_account_id_list:
+            sql_str = "select * from depositaccount where Account_ID = \'" + deposit_account_id + "\'"
+            cursor.execute(sql_str)
+            deposit_account_data.append(cursor.fetchall()[0])
+
+    if request.method == 'POST':
+        amount = request.form['amount']
+        if not amount.isdigit():
+            flash("非法输入，请输入数字")
+            return redirect(url_for('deposit_account_withdraw', username=username, account_id=account_id))
+        elif float(amount) < 0:
+            flash("非法输入，请输入正数")
+            return redirect(url_for('deposit_account_withdraw', username=username, account_id=account_id))
+        sql_str = "update depositaccount set Account_balance = Account_balance - " + amount
+        cursor.execute(sql_str)
+        db.commit()
+        flash('取款成功')
+        return redirect(url_for('deposit_account_customer', username=username))
+
+    return render_template("deposit_account_withdraw.html", username=username, account_id=account_id,
+                           have_deposit_account=have_deposit_account, deposit_account_data=deposit_account_data)
+
+
+@app.route('/deposit_account_save/<username>_<account_id>', methods=['GET', 'POST'])
+def deposit_account_save(username, account_id):
+    permission = session.get(username)
+    if not permission:
+        flash('非法请求，跳转到初始页')
+        return redirect(url_for('index'))
+
+    have_deposit_account = False
+
+    sql_str = "select Account_ID from customer inner join customer_depositaccount cc on customer.User_ID = cc.User_ID " \
+              "where User_Username = \'" + username + "\'"
+    cursor.execute(sql_str)
+    temp_id_list = cursor.fetchall()
+    deposit_account_id_list = []
+    for temp_id in temp_id_list:
+        deposit_account_id_list.append(temp_id[0])
+
+    deposit_account_data = []
+    if len(deposit_account_id_list):
+        have_deposit_account = True
+        for deposit_account_id in deposit_account_id_list:
+            sql_str = "select * from depositaccount where Account_ID = \'" + deposit_account_id + "\'"
+            cursor.execute(sql_str)
+            deposit_account_data.append(cursor.fetchall()[0])
+
+    if request.method == 'POST':
+        amount = request.form['amount']
+        if not amount.isdigit():
+            flash("非法输入，请输入数字")
+            return redirect(url_for('deposit_account_save', username=username, account_id=account_id))
+        elif float(amount) < 0:
+            flash("非法输入，请输入正数")
+            return redirect(url_for('deposit_account_save', username=username, account_id=account_id))
+        sql_str = "update depositaccount set Account_balance = Account_balance + " + amount
+        cursor.execute(sql_str)
+        db.commit()
+        flash('存款成功')
+        return redirect(url_for('deposit_account_customer', username=username))
+
+    return render_template("deposit_account_save.html", username=username, account_id=account_id,
+                           have_deposit_account=have_deposit_account, deposit_account_data=deposit_account_data)
 
 
 if __name__ == '__main__':
