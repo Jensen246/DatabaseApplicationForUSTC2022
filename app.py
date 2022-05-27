@@ -468,7 +468,7 @@ def check_account_customer(username):
                                have_check_account=have_check_account, check_account_data=check_account_data)
 
 
-@app.route('/open_check_account/<username>', methods=['GET', 'POST'])
+@app.route('/open_check_account/<username>')
 def open_check_account(username):
     permission = session.get(username)
     if not permission:
@@ -631,7 +631,8 @@ def check_account_withdraw(username, account_id):
         elif balance - float(amount) < - overdraft:
             flash("透支额到达限度，取款失败")
             return redirect(url_for('check_account_withdraw', username=username, account_id=account_id))
-        sql_str = "update checkaccount set Account_balance = Account_balance - " + amount
+        sql_str = "update checkaccount set Account_balance = Account_balance - \'" + amount + \
+                  "\' where Account_ID = \'" + account_id + "\'"
         cursor.execute(sql_str)
         db.commit()
         flash('取款成功')
@@ -674,7 +675,8 @@ def check_account_save(username, account_id):
         elif float(amount) < 0:
             flash("非法输入，请输入正数")
             return redirect(url_for('check_account_save', username=username, account_id=account_id))
-        sql_str = "update checkaccount set Account_balance = Account_balance + " + amount
+        sql_str = "update checkaccount set Account_balance = Account_balance + \'" + amount + \
+                  "\' where Account_ID = \'" + account_id + "\'"
         cursor.execute(sql_str)
         db.commit()
         flash('存款成功')
@@ -729,8 +731,20 @@ def deposit_account_customer(username):
                                have_deposit_account=have_deposit_account, deposit_account_data=deposit_account_data)
 
 
-@app.route('/open_deposit_account/<username>', methods=['GET', 'POST'])
-def open_deposit_account(username):
+@app.route('/open_deposit_account_choose_currency_type/<username>', methods=['GET', 'POST'])
+def open_deposit_account_choose_currency_type(username):
+    permission = session.get(username)
+    if not permission:
+        flash('非法请求，跳转到初始页')
+        return redirect(url_for('index'))
+    if request.method == 'POST':
+        currency_type = request.form['currency_type']
+        return redirect(url_for('open_deposit_account', username=username, currency_type=currency_type))
+    return render_template('open_deposit_account_choose_currency_type.html', username=username)
+
+
+@app.route('/open_deposit_account/<username>_<currency_type>', methods=['GET', 'POST'])
+def open_deposit_account(username, currency_type):
     permission = session.get(username)
     if not permission:
         flash('非法请求，跳转到初始页')
@@ -769,12 +783,12 @@ def open_deposit_account(username):
                 option_employee[2] = "员工"
             employee_dict[option_bank].append(option_employee)
 
-    return render_template('open_deposit_account.html', username=username,
+    return render_template('open_deposit_account.html', username=username, currency_type=currency_type,
                            option_bank_list=option_bank_list, employee_dict=employee_dict, bank_list=bank_list)
 
 
-@app.route('/build_deposit_account/<username>_<employee>_<bank>')
-def build_deposit_account(username, employee, bank):
+@app.route('/build_deposit_account/<username>_<employee>_<bank>_<currency_type>', methods=['GET', 'POST'])
+def build_deposit_account(username, employee, bank, currency_type):
     permission = session.get(username)
     if not permission:
         flash('非法请求，跳转到初始页')
@@ -791,13 +805,15 @@ def build_deposit_account(username, employee, bank):
     cursor.execute(sql_str)
     account_id_temp_list = cursor.fetchall()
     account_id_list = []
-    # 获取ck后的数字位
+    # 获取dp后的数字位
     for item in account_id_temp_list:
         account_id_list.append(int(item[0][2:]))
-    new_account_id = "ck" + str(max(account_id_list) + 1)
+    new_account_id = "dp" + str(max(account_id_list) + 1)
+
+    flash(currency_type)
 
     sql_str = "insert into depositaccount " \
-              "value (\'" + new_account_id + "\', 0, \'" + date + "\',\'" + bank + "\', 20000)"
+              "value (\'" + new_account_id + "\', 0, \'" + date + "\',\'" + bank + "\', 0.03," + currency_type + ")"
     cursor.execute(sql_str)
     db.commit()
 
@@ -806,7 +822,7 @@ def build_deposit_account(username, employee, bank):
     cursor.execute(sql_str)
     db.commit()
 
-    sql_str = "insert into employee_customer value (\'" + employee_id + "\',\'" + user_id + "\',\'ck\')"
+    sql_str = "insert into employee_customer value (\'" + employee_id + "\',\'" + user_id + "\',\'dp\')"
     cursor.execute(sql_str)
     db.commit()
 
@@ -836,9 +852,6 @@ def delete_deposit_account(username, deposit_account_id):
     cursor.execute(sql_str)
     employee_id = cursor.fetchall()[0][0]
 
-    if balance < 0:
-        flash('您有透支额，不允许销户')
-        return redirect(url_for('deposit_account_customer', username=username))
     sql_str = "delete from employee_customer where User_ID = \'" + user_id + "\' and Employee_ID = \'" + employee_id + "\'"
     cursor.execute(sql_str)
     db.commit()
@@ -861,13 +874,17 @@ def deposit_account_withdraw(username, account_id):
 
     have_deposit_account = False
 
-    sql_str = "select Account_ID from customer inner join customer_depositaccount cc on customer.User_ID = cc.User_ID " \
+    sql_str = "select Account_ID from customer inner join customer_depositaccount cd on customer.User_ID = cd.User_ID " \
               "where User_Username = \'" + username + "\'"
     cursor.execute(sql_str)
     temp_id_list = cursor.fetchall()
     deposit_account_id_list = []
     for temp_id in temp_id_list:
         deposit_account_id_list.append(temp_id[0])
+
+    sql_str = "select Account_balance from depositaccount where Account_ID =\'" + account_id + "\'"
+    cursor.execute(sql_str)
+    balance = cursor.fetchall()[0][0]
 
     deposit_account_data = []
     if len(deposit_account_id_list):
@@ -880,12 +897,16 @@ def deposit_account_withdraw(username, account_id):
     if request.method == 'POST':
         amount = request.form['amount']
         if not amount.isdigit():
-            flash("非法输入，请输入数字")
+            flash("非法输入，取款失败，请输入数字")
             return redirect(url_for('deposit_account_withdraw', username=username, account_id=account_id))
         elif float(amount) < 0:
-            flash("非法输入，请输入正数")
+            flash("非法输入，取款失败，请输入正数")
             return redirect(url_for('deposit_account_withdraw', username=username, account_id=account_id))
-        sql_str = "update depositaccount set Account_balance = Account_balance - " + amount
+        elif balance - float(amount) < 0:
+            flash("余额不足，取款失败")
+            return redirect(url_for('deposit_account_withdraw', username=username, account_id=account_id))
+        sql_str = "update depositaccount set Account_balance = Account_balance - \'" + amount + \
+                  "\' where Account_ID = \'" + account_id + "\'"
         cursor.execute(sql_str)
         db.commit()
         flash('取款成功')
@@ -928,7 +949,8 @@ def deposit_account_save(username, account_id):
         elif float(amount) < 0:
             flash("非法输入，请输入正数")
             return redirect(url_for('deposit_account_save', username=username, account_id=account_id))
-        sql_str = "update depositaccount set Account_balance = Account_balance + " + amount
+        sql_str = "update depositaccount set Account_balance = Account_balance + \'" + amount + \
+                  "\' where Account_ID = \'" + account_id + "\'"
         cursor.execute(sql_str)
         db.commit()
         flash('存款成功')

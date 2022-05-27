@@ -137,7 +137,7 @@ create table Employee_Customer
     Employee_ID  char(16) not null comment '员工身份证号码',
     User_ID      char(16) not null comment '用户身份证号码',
     Service_Type char(32) comment '服务类型',
-    primary key (Employee_ID, User_ID)
+    primary key (Employee_ID, User_ID, Service_Type)
 )DEFAULT CHARSET=utf8;
 
 /*==============================================================*/

@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+    <nav>
+        <ul>
+            <li><a href="{{ url_for('index_customer', username=username) }}">支行信息</a></li>
+            <li><a href="{{ url_for('info_customer', username=username) }}">个人信息</a></li>
+            <li>
+                <div class="dropdown">
+                    <a href="#" class="dropbtn">账户管理</a>
+                    <div class="dropdown-content">
+                        <a href="{{ url_for('deposit_account_customer', username=username) }}">储蓄账户</a>
+                        <a href="{{ url_for('check_account_customer', username=username) }}">支票账户</a>
+                    </div>
+                </div>
+            </li>
+            <li><a href="{{ url_for('index') }}">贷款管理</a></li>
+            <li><a href="{{ url_for('logout', username=username) }}">登出</a></li>
+        </ul>
+    </nav>
+
+    <p style="font-size:20px;font-weight: bolder; margin-top: 10px">储蓄账户 - 开户</p>
+    <small>
+        <p style="color: gray;margin-top: -20px;margin-bottom: 20px">
+            您需要先选定储蓄的币种，再绑定一位员工作为您的储蓄账户负责人，初始利率为0.03，可以联系员工修改
+        </p>
+    </small>
+
+
+    <p style="text-align: center; font-size: 15px; font-weight: bolder; color: #333">
+        请先选择您想要储蓄的币种
+    </p>
+    <form method="post">
+        <select id="currency_type" name="currency_type" required>
+            <option value=0>人民币</option>
+            <option value=1>美元</option>
+            <option value=2>欧元</option>
+            <option value=3>日元</option>
+        </select>
+        <input class="btn" type="submit" name="submit" value="确认">
+    </form>
+
+{% endblock %}
+
+

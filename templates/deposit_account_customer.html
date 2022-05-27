@@ -23,7 +23,7 @@
     <span>
         <p style="font-size:20px;font-weight: bolder; margin-top: 10px">储蓄账户</p>
         <p style="text-align: right; margin-right: 38px; margin-top: -30px">
-        <a class="btn" href="{{ url_for('open_deposit_account', username=username) }}"
+        <a class="btn" href="{{ url_for('open_deposit_account_choose_currency_type', username=username) }}"
            onclick="return confirm('您只能在每个支行开一个储蓄账户，进行开户之前请先确认')">开户</a>
     </p>
     </span>
