@@ -1,4 +1,4 @@
-from ExecSql import Execute_File, Execute_Sentence
+from trashbin.ExecSql import Execute_File, Execute_Sentence
 
 Execute_Sentence("drop database IF EXISTS BankApp")
 Execute_Sentence("create database BankApp;")

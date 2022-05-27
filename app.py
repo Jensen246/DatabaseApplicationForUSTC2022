@@ -916,6 +916,7 @@ def deposit_account_withdraw(username, account_id):
                            have_deposit_account=have_deposit_account, deposit_account_data=deposit_account_data)
 
 
+# 储蓄账户存款
 @app.route('/deposit_account_save/<username>_<account_id>', methods=['GET', 'POST'])
 def deposit_account_save(username, account_id):
     permission = session.get(username)
@@ -958,6 +959,145 @@ def deposit_account_save(username, account_id):
 
     return render_template("deposit_account_save.html", username=username, account_id=account_id,
                            have_deposit_account=have_deposit_account, deposit_account_data=deposit_account_data)
+
+
+# 客户请求新贷款
+@app.route('/loan_request_customer/<username>', methods=['GET', 'POST'])
+def loan_request_customer(username):
+    permission = session.get(username)
+    if not permission:
+        flash('非法请求，跳转到初始页')
+        return redirect(url_for('index'))
+
+    sql_str = "select User_ID from customer where User_Username = \'" + username + "\'"
+    cursor.execute(sql_str)
+    user_id = cursor.fetchall()[0][0]
+
+    if request.method == 'POST':
+        bank = request.form['bank']  # 要贷款的支行
+        loan_money = request.form['loan_money']  # 请求的贷款额度
+
+        if not loan_money.isdigit():
+            flash("非法输入，请输入数字")
+            return redirect(url_for('loan_request_customer', username=username, bank_list=bank_list))
+        elif float(loan_money) < 0:
+            flash("非法输入，请输入正数")
+            return redirect(url_for('loan_request_customer', username=username, bank_list=bank_list))
+        # 查询当前最大的贷款ln id生成新的贷款号
+        sql_str = "select Loan_ID from loan"
+        cursor.execute(sql_str)
+        loan_id_temp_list = cursor.fetchall()
+        loan_id_list = []
+        # 获取ln后的数字位
+        for item in loan_id_temp_list:
+            loan_id_list.append(int(item[0][2:]))
+        new_loan_id = "ln" + str(max(loan_id_list) + 1)
+
+        sql_str = "insert into loan value ( \'" + new_loan_id + "\',\'" + bank + "\',\'" + loan_money + "\',\'0\')"
+        cursor.execute(sql_str)
+        db.commit()
+        sql_str = "insert into customer_loan value (\'" + new_loan_id + "\',\'" + user_id + "\')"
+        cursor.execute(sql_str)
+        db.commit()
+        # 由于贷款业务没有规定数量上限，所以限定每个客户绑定一个负责其贷款业务的员工
+        sql_str = "select * from employee_customer where Service_Type = \'ln\' and User_ID = \'" + user_id + "\'"
+        cursor.execute(sql_str)
+        flag = cursor.fetchall()
+        if not len(flag):
+            flash("发起贷款成功，但您需要选择负责您贷款业务的员工")
+            return redirect(url_for("loan_choose_employee_customer", username=username, bank=bank))
+        else:
+            flash("发起贷款成功，跳转到贷款详情页")
+            return redirect(url_for("loan_customer_info", username=username))
+    return render_template('loan_request_customer.html', username=username, bank_list=bank_list)
+
+
+# 客户选择与他绑定贷款业务的员工
+@app.route('/loan_choose_employee_customer/<username>_<bank>')
+def loan_choose_employee_customer(username, bank):
+    permission = session.get(username)
+    if not permission:
+        flash('非法请求，跳转到初始页')
+        return redirect(url_for('index'))
+
+    sql_str = "select Employee_Name,Employee_PhoneNumber,Is_Manager,Employee_Username from employee " \
+              "inner join department d on employee.Department_ID = d.Department_ID " \
+              "where Bank_Name = \'" + bank + "\' and Department_Name = \'客服部\'"
+    cursor.execute(sql_str)
+    employee_data = cursor.fetchall()
+    employee_list = []
+    for employee in employee_data:
+        if employee[2] == 1:
+            flag = '经理'
+        else:
+            flag = "员工"
+        employee_list.append([employee[0], str(employee[1]), flag, employee[3]])
+    return render_template("loan_choose_employee_customer.html", username=username, bank=bank, employee_list=employee_list)
+
+
+@app.route('/loan_add_employee_customer/<username>_<employee>')
+def loan_add_employee_customer(username, employee):
+    permission = session.get(username)
+    if not permission:
+        flash('非法请求，跳转到初始页')
+        return redirect(url_for('index'))
+
+    sql_str = "select User_ID from customer where User_Username = \'" + username + "\'"
+    cursor.execute(sql_str)
+    user_id = cursor.fetchall()[0][0]
+    sql_str = "select Employee_ID from employee where Employee_Username = \'" + employee + "\'"
+    cursor.execute(sql_str)
+    employee_id = cursor.fetchall()[0][0]
+    sql_str = "insert into employee_customer value (\'" + employee_id + "\',\'" + user_id + "\',\'ln\')"
+    cursor.execute(sql_str)
+    db.commit()
+    flash("设置贷款负责人成功，跳转到贷款详情页")
+    return redirect(url_for("loan_customer_info", username=username))
+
+
+# 客户端贷款详情页，显示客户的所有贷款业务
+@app.route('/loan_customer_info/<username>')
+def loan_customer_info(username):
+    permission = session.get(username)
+    if not permission:
+        flash('非法请求，跳转到初始页')
+        return redirect(url_for('index'))
+
+    sql_str = "select loan.Loan_ID, Bank_Name, Loan_Money, Loan_Status from loan " \
+              "inner join customer_loan cl on loan.Loan_ID = cl.Loan_ID " \
+              "inner join customer c on cl.User_ID = c.User_ID" \
+              " where User_Username=\'" + username + "\'"
+    cursor.execute(sql_str)
+    loan_info_data = cursor.fetchall()
+    loan_info_list = []
+    for loan_info in loan_info_data:
+        loan_info_list.append(list(loan_info))
+    for loan_info in loan_info_list:
+        if loan_info[3] == 0:
+            loan_info[3] = "未发放"
+        elif loan_info[3] == 1:
+            loan_info[3] = '发放中'
+        elif loan_info[3] == 2:
+            loan_info[3] = "发放完成"
+    return render_template("loan_customer_info.html", username=username, loan_info_list=loan_info_list)
+
+
+@app.route('/loan_delete/<username>_<loan_id>')
+def loan_delete(username, loan_id):
+    permission = session.get(username)
+    if not permission:
+        flash('非法请求，跳转到初始页')
+        return redirect(url_for('index'))
+    sql_str = "select Loan_Status from loan where Loan_ID = \'" + loan_id + "\'"
+    cursor.execute(sql_str)
+    flag = cursor.fetchall()[0][0]
+
+    sql_str = "delete from customer_loan where Loan_ID = \'" + loan_id + "\'"
+    cursor.execute(sql_str)
+    db.commit()
+
+    flash("删除成功，跳转到贷款信息页")
+    return redirect(url_for('loan_customer_info', username=username))
 
 
 if __name__ == '__main__':

@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 
 {% block content %}
+
     <nav>
         <ul>
             <li><a href="{{ url_for('index_customer', username=username) }}">支行信息</a></li>
@@ -9,7 +10,7 @@
                 <div class="dropdown">
                     <a href="#" class="dropbtn">账户管理</a>
                     <div class="dropdown-content">
-                        <a href="{{ url_for('index_customer', username=username) }}">储蓄账户</a>
+                        <a href="{{ url_for('deposit_account_customer', username=username) }}">储蓄账户</a>
                         <a href="{{ url_for('check_account_customer', username=username) }}">支票账户</a>
                     </div>
                 </div>
@@ -27,39 +28,37 @@
         </ul>
     </nav>
 
-    <p style="font-size:20px;font-weight: bolder; margin-top: 10px">支票账户 - 开户</p>
+    <p style="font-size:20px;font-weight: bolder; margin-top: 10px">贷款业务 - 当前贷款</p>
     <small>
         <p style="color: gray;margin-top: -20px;margin-bottom: 20px">
-            您需要绑定一位员工作为您的支票账户负责人，初始透支额度为两万，可以联系对应支行的员工修改
+            查看当前的所有贷款
         </p>
     </small>
 
     <p style="text-align: center; font-size: 15px; font-weight: bolder; color: #333">
-        可开户的支行 - 员工列表
+        您有 {{ loan_info_list|length }} 笔贷款业务
     </p>
-    {% for bank in option_bank_list %}
-        <p style="font-size:15px;font-weight: bolder; margin-top: 10px">{{ bank }}</p>
-        <table class="gridtable">
-            <tr>
-                <th>姓名</th>
-                <th>电话号码</th>
-                <th>职位</th>
-                <th>&nbsp;</th>
-            </tr>
-            {% for employee in employee_dict[bank] %}
-                <tr>
-                    <td><center>{{ employee[0] }}</center></td>
-                    <td><center>{{ employee[1] }}</center></td>
-                    <td><center>{{ employee[2] }}</center></td>
-                    <td><center>
-                        <a class="btn"
-                           href="{{ url_for('build_check_account', username=username, employee=employee[0], bank=bank) }}">
-                            选择
-                        </a>
-                    </center></td>
-                </tr>
-            {% endfor %}
-        </table>
+    <table class="gridtable">
+    <tr>
+        <th>贷款号</th>
+        <th>贷款支行</th>
+        <th>贷款金额</th>
+        <th>发放状态</th>
+        <th>&nbsp;</th>
+    </tr>
+    {% for loan in loan_info_list %}
+    <tr>
+        <td><center>{{ loan[0] }}</center></td>
+        <td><center>{{ loan[1] }}</center></td>
+        <td><center>{{ loan[2] }}</center></td>
+        <td><center>{{ loan[3] }}</center></td>
+        <td><center><a class="delete_btn"
+               href="{{ url_for('loan_delete', username=username, loan_id=loan[0]) }}">删除</a>
+        </center></td>
+    </tr>
     {% endfor %}
+    </table>
 
 {% endblock %}
+
+

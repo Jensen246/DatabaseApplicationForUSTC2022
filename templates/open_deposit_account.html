@@ -15,7 +15,15 @@
                     </div>
                 </div>
             </li>
-            <li><a href="{{ url_for('index') }}">贷款管理</a></li>
+            <li>
+                <div class="dropdown">
+                    <a href="#" class="dropbtn">贷款业务</a>
+                    <div class="dropdown-content">
+                        <a href="{{ url_for('loan_customer_info', username=username) }}">当前贷款</a>
+                        <a href="{{ url_for('loan_request_customer', username=username) }}">发起贷款</a>
+                    </div>
+                </div>
+            </li>
             <li><a href="{{ url_for('logout', username=username) }}">登出</a></li>
         </ul>
     </nav>

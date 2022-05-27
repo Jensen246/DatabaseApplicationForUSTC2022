@@ -18,7 +18,7 @@
     {% for bank in bank_list %}
     <li>{{bank[0]}} - 当前资产 ￥{{bank[1]}}
         <span class="float-right">
-            <a class="yellow_button" href="{{ url_for('sub_bank',bank_name=bank[0]) }}">详情</a>
+            <a class="yellow_button" href="{{ url_for('sub_bank',bank_name=bank[0]) }}" target="_blank">详情</a>
         </span>
     </li>
 

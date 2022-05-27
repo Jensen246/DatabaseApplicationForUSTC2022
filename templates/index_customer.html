@@ -1,37 +1,45 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<nav>
-    <ul>
-        <li><a href="{{ url_for('index_customer', username=username) }}">支行信息</a></li>
-        <li><a href="{{ url_for('info_customer', username=username) }}">个人信息</a></li>
-        <li>
-            <div class="dropdown">
-            <a href="#" class="dropbtn">账户管理</a>
-            <div class="dropdown-content">
-                <a href="{{ url_for('deposit_account_customer', username=username) }}">储蓄账户</a>
-                <a href="{{ url_for('check_account_customer', username=username) }}">支票账户</a>
-            </div>
-        </div>
-        </li>
+    <nav>
+        <ul>
+            <li><a href="{{ url_for('index_customer', username=username) }}">支行信息</a></li>
+            <li><a href="{{ url_for('info_customer', username=username) }}">个人信息</a></li>
+            <li>
+                <div class="dropdown">
+                    <a href="#" class="dropbtn">账户管理</a>
+                    <div class="dropdown-content">
+                        <a href="{{ url_for('deposit_account_customer', username=username) }}">储蓄账户</a>
+                        <a href="{{ url_for('check_account_customer', username=username) }}">支票账户</a>
+                    </div>
+                </div>
+            </li>
 
-        <li><a href="{{ url_for('index') }}">贷款管理</a></li>
-        <li><a href="{{ url_for('logout', username=username) }}">登出</a></li>
-    </ul>
-</nav>
+            <li>
+                <div class="dropdown">
+                    <a href="#" class="dropbtn">贷款业务</a>
+                    <div class="dropdown-content">
+                        <a href="{{ url_for('loan_customer_info', username=username) }}">当前贷款</a>
+                        <a href="{{ url_for('loan_request_customer', username=username) }}">发起贷款</a>
+                    </div>
+                </div>
+            </li>
+            <li><a href="{{ url_for('logout', username=username) }}">登出</a></li>
+        </ul>
+    </nav>
 
 
-<p style="font-size:20px;font-weight: bold; margin-top: 10px">支行列表</p>
-<small><p style="color: gray;margin-top: -20px;margin-bottom: 20px"> 点击"详情"查看支行员工</p></small>
-<ul class="list">
-    {% for bank in bank_list %}
-    <li>{{bank}}
-        <span class="float-right">
-            <a class="yellow_button" href="{{ url_for('sub_bank',bank_name=bank) }}">详情</a>
+    <p style="font-size:20px;font-weight: bold; margin-top: 10px">支行列表</p>
+    <small><p style="color: gray;margin-top: -20px;margin-bottom: 20px"> 点击"详情"查看支行员工</p></small>
+    <ul class="list">
+        {% for bank in bank_list %}
+            <li>{{ bank }}
+                <span class="float-right">
+            <a class="yellow_button" href="{{ url_for('sub_bank',bank_name=bank) }} " target="_blank">详情</a>
         </span>
-    </li>
+            </li>
 
-    {% endfor %}
-</ul>
+        {% endfor %}
+    </ul>
 
 {% endblock %}
