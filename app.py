@@ -497,7 +497,7 @@ def open_check_account(username):
         sql_str = "select Employee_Name,Employee_PhoneNumber,Is_Manager from employee " \
                   "inner join department d on employee.Department_ID = d.Department_ID " \
                   "inner join subbank s on d.Bank_Name = s.Bank_Name " \
-                  "where d.Department_Name =\'客服部\' and d.Bank_Name = \'" + option_bank + "\'"
+                  "where d.Department_Name =\'营销部\' and d.Bank_Name = \'" + option_bank + "\'"
         cursor.execute(sql_str)
         option_employee_list = cursor.fetchall()
         for option_employee in option_employee_list:
@@ -772,7 +772,7 @@ def open_deposit_account(username, currency_type):
         sql_str = "select Employee_Name,Employee_PhoneNumber,Is_Manager from employee " \
                   "inner join department d on employee.Department_ID = d.Department_ID " \
                   "inner join subbank s on d.Bank_Name = s.Bank_Name " \
-                  "where d.Department_Name =\'客服部\' and d.Bank_Name = \'" + option_bank + "\'"
+                  "where d.Department_Name =\'营销部\' and d.Bank_Name = \'" + option_bank + "\'"
         cursor.execute(sql_str)
         option_employee_list = cursor.fetchall()
         for option_employee in option_employee_list:
@@ -1000,7 +1000,10 @@ def loan_request_customer(username):
         cursor.execute(sql_str)
         db.commit()
         # 由于贷款业务没有规定数量上限，所以限定每个客户绑定一个负责其贷款业务的员工
-        sql_str = "select * from employee_customer where Service_Type = \'ln\' and User_ID = \'" + user_id + "\'"
+        sql_str = "select * from employee_customer " \
+                  "inner join employee e on employee_customer.Employee_ID = e.Employee_ID " \
+                  "inner join department d on e.Department_ID = d.Department_ID " \
+                  "where Service_Type = \'ln\' and User_ID = \'" + user_id + "\' and d.Bank_Name = \'" + bank + "\'"
         cursor.execute(sql_str)
         flag = cursor.fetchall()
         if not len(flag):
@@ -1032,7 +1035,8 @@ def loan_choose_employee_customer(username, bank):
         else:
             flag = "员工"
         employee_list.append([employee[0], str(employee[1]), flag, employee[3]])
-    return render_template("loan_choose_employee_customer.html", username=username, bank=bank, employee_list=employee_list)
+    return render_template("loan_choose_employee_customer.html", username=username, bank=bank,
+                           employee_list=employee_list)
 
 
 @app.route('/loan_add_employee_customer/<username>_<employee>')
@@ -1091,13 +1095,101 @@ def loan_delete(username, loan_id):
     sql_str = "select Loan_Status from loan where Loan_ID = \'" + loan_id + "\'"
     cursor.execute(sql_str)
     flag = cursor.fetchall()[0][0]
-
+    if not flag:
+        flash("该贷款尚未发放完成，不允许删除")
+        return redirect(url_for('loan_customer_info', username=username))
     sql_str = "delete from customer_loan where Loan_ID = \'" + loan_id + "\'"
     cursor.execute(sql_str)
     db.commit()
 
-    flash("删除成功，跳转到贷款信息页")
+    flash("删除成功")
     return redirect(url_for('loan_customer_info', username=username))
+
+
+@app.route('/employee_relate_customer/<username>')
+def employee_relate_customer(username):
+    permission = session.get(username)
+    if not permission:
+        flash('非法请求，跳转到初始页')
+        return redirect(url_for('index'))
+
+    sql_str = "select ec.User_ID, ec.Employee_ID, Employee_Name, Employee_PhoneNumber, Service_Type,Is_Manager, Bank_Name " \
+              "from employee inner join employee_customer ec on employee.Employee_ID = ec.Employee_ID " \
+              "inner join customer c on ec.User_ID = c.User_ID " \
+              "inner join department d on employee.Department_ID = d.Department_ID " \
+              "where User_Username = \'" + username + "\'"
+    cursor.execute(sql_str)
+    relation_temp_data = cursor.fetchall()
+    relation_list = []
+    for item in relation_temp_data:
+        relation_list.append(list(item))
+    for item in relation_list:
+        if item[4] == 'ck':
+            item[4] = '支票账户'
+        elif item[4] == 'dp':
+            item[4] = '储蓄账户'
+        elif item[4] == 'ln':
+            item[4] = '贷款业务'
+        if item[5] == 1:
+            item[5] = '经理'
+        else:
+            item[5] = "员工"
+    return render_template("employee_relate_customer.html", username=username, relation_list=relation_list)
+
+
+@app.route('/employee_relate_customer_change/<username>_<user_id>/<bank>_<service_type>_<old_employee>')
+def employee_relate_customer_change(username, user_id, bank, service_type, old_employee):
+    permission = session.get(username)
+    if not permission:
+        flash('非法请求，跳转到初始页')
+        return redirect(url_for('index'))
+    if service_type == "贷款业务":
+        department = '客服部'
+    else:
+        department = '营销部'
+    sql_str = "select Employee_Name,Employee_PhoneNumber,Is_Manager,Employee_ID from employee " \
+              "inner join department d on employee.Department_ID = d.Department_ID " \
+              "where Department_Name = \'" + department + "\' and Bank_Name = \'" + bank + "\'"
+    cursor.execute(sql_str)
+    employee_temp_data = cursor.fetchall()
+    employee_data_list = []
+    for item in employee_temp_data:
+        employee_data_list.append(list(item))
+    for item in employee_data_list:
+        if item[2] == 1:
+            item[2] = '经理'
+        else:
+            item[2] = '员工'
+    return render_template("employee_relate_customer_change.html",
+                           username=username, employee_data_list=employee_data_list, old_employee=old_employee,
+                           user_id=user_id, service_type=service_type, bank=bank)
+
+
+@app.route('/employee_relate_customer_update/<username>_<user_id>/<service_type>/<old_employee>_to_<new_employee>')
+def employee_relate_customer_update(username, user_id, service_type, old_employee, new_employee):
+    permission = session.get(username)
+    if not permission:
+        flash('非法请求，跳转到初始页')
+        return redirect(url_for('index'))
+    if service_type == "支票账户":
+        service_str = "ck"
+    elif service_type == "储蓄账户":
+        service_str = "dp"
+    else:
+        service_str = "ln"
+    sql_str = "delete from employee_customer " \
+              "where Employee_ID = \'" + old_employee + \
+              "\' and User_ID = \'" + user_id + \
+              "\' and Service_Type = \'" + service_str + "\'"
+    cursor.execute(sql_str)
+    db.commit()
+    flash("成功删除旧责任关系")
+    sql_str = "insert into employee_customer " \
+              "value (\'" + new_employee + "\',\'" + user_id + "\',\'" + service_str + "\')"
+    cursor.execute(sql_str)
+    db.commit()
+    flash("成功添加新责任关系，跳转关联负责员工界面")
+    return  redirect(url_for('employee_relate_customer', username=username))
 
 
 if __name__ == '__main__':

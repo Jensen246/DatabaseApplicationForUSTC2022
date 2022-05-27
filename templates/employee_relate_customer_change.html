@@ -1,7 +1,6 @@
 {% extends 'base.html' %}
 
 {% block content %}
-
     <nav>
         <ul>
             <li><a href="{{ url_for('index_customer', username=username) }}">支行信息</a></li>
@@ -15,6 +14,7 @@
                     </div>
                 </div>
             </li>
+
             <li>
                 <div class="dropdown">
                     <a href="#" class="dropbtn">贷款业务</a>
@@ -29,27 +29,39 @@
         </ul>
     </nav>
 
-    <p style="font-size:20px;font-weight: bolder; margin-top: 10px">储蓄账户 - 开户</p>
+    <p style="font-size:20px;font-weight: bolder; margin-top: 10px">{{ bank }} - {{ service_type }} 负责员工变更</p>
     <small>
         <p style="color: gray;margin-top: -20px;margin-bottom: 20px">
-            您需要先选定储蓄的币种，再绑定一位员工作为您的储蓄账户负责人，初始利率为0.03，可以联系员工修改
+            在这个页面您可以<strong>更换</strong>指定业务的负责员工
         </p>
     </small>
-
-
-    <p style="text-align: center; font-size: 15px; font-weight: bolder; color: #333">
-        请先选择您想要储蓄的币种
-    </p>
-    <form method="post">
-        <select id="currency_type" name="currency_type" required>
-            <option value=0>人民币</option>
-            <option value=1>美元</option>
-            <option value=2>欧元</option>
-            <option value=3>日元</option>
-        </select>
-        <input class="btn" type="submit" name="submit" value="确认">
-    </form>
+    <table class="gridtable">
+        <tr>
+            <th>姓名</th>
+            <th>电话号码</th>
+            <th>职位</th>
+            <th>&nbsp;</th>
+        </tr>
+        {% for employee in employee_data_list %}
+            <tr>
+                <td>
+                    <center>{{ employee[0] }}</center>
+                </td>
+                <td>
+                    <center>{{ employee[1] }}</center>
+                </td>
+                <td>
+                    <center>{{ employee[2] }}</center>
+                </td>
+                <td>
+                    <a class="btn"
+                       href="{{ url_for('employee_relate_customer_update',username=username,user_id=user_id,
+                       service_type=service_type,old_employee=old_employee,new_employee=employee[3]) }}">
+                        选择
+                    </a>
+                </td>
+            </tr>
+        {% endfor %}
+    </table>
 
 {% endblock %}
-
-
