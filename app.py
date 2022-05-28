@@ -5,6 +5,8 @@ from DbProcess import *
 from forms_verify import *
 from functools import wraps
 import copy
+import numpy as np
+from IsFloat import isfloat
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = '123456'
@@ -622,7 +624,7 @@ def check_account_withdraw(username, account_id):
 
     if request.method == 'POST':
         amount = request.form['amount']
-        if not amount.isdigit():
+        if not isfloat(amount):
             flash("非法输入，取款失败，请输入数字")
             return redirect(url_for('check_account_withdraw', username=username, account_id=account_id))
         elif float(amount) < 0:
@@ -669,7 +671,7 @@ def check_account_save(username, account_id):
 
     if request.method == 'POST':
         amount = request.form['amount']
-        if not amount.isdigit():
+        if not isfloat(amount):
             flash("非法输入，请输入数字")
             return redirect(url_for('check_account_save', username=username, account_id=account_id))
         elif float(amount) < 0:
@@ -896,7 +898,7 @@ def deposit_account_withdraw(username, account_id):
 
     if request.method == 'POST':
         amount = request.form['amount']
-        if not amount.isdigit():
+        if not isfloat(amount):
             flash("非法输入，取款失败，请输入数字")
             return redirect(url_for('deposit_account_withdraw', username=username, account_id=account_id))
         elif float(amount) < 0:
@@ -944,7 +946,7 @@ def deposit_account_save(username, account_id):
 
     if request.method == 'POST':
         amount = request.form['amount']
-        if not amount.isdigit():
+        if not isfloat(amount):
             flash("非法输入，请输入数字")
             return redirect(url_for('deposit_account_save', username=username, account_id=account_id))
         elif float(amount) < 0:
@@ -977,7 +979,7 @@ def loan_request_customer(username):
         bank = request.form['bank']  # 要贷款的支行
         loan_money = request.form['loan_money']  # 请求的贷款额度
 
-        if not loan_money.isdigit():
+        if not isfloat(loan_money):
             flash("非法输入，请输入数字")
             return redirect(url_for('loan_request_customer', username=username, bank_list=bank_list))
         elif float(loan_money) < 0:
@@ -1189,7 +1191,171 @@ def employee_relate_customer_update(username, user_id, service_type, old_employe
     cursor.execute(sql_str)
     db.commit()
     flash("成功添加新责任关系，跳转关联负责员工界面")
-    return  redirect(url_for('employee_relate_customer', username=username))
+    return redirect(url_for('employee_relate_customer', username=username))
+
+
+@app.route("/customer_info_employee/<username>", methods=['GET', 'POST'])
+def customer_info_employee(username):
+    permission = session.get(username)
+    if not permission:
+        flash('非法请求，跳转到初始页')
+        return redirect(url_for('index'))
+    sql_str = "select * from customer"
+    cursor.execute(sql_str)
+    customer_data = cursor.fetchall()
+    customer_list = []
+    for item in customer_data:
+        customer_list.append(list(item))
+    if request.method == 'POST':
+        name = request.form["name"]
+        address = request.form["address"]
+        contacts_name = request.form["contacts_name"]
+
+        if not (name or address or contacts_name):
+            return render_template("customer_info_employee.html", username=username, customer_data=customer_data)
+        else:
+            customer_list_name = copy.deepcopy(customer_list)
+            customer_list_address = copy.deepcopy(customer_list)
+            customer_list_contacts_name = copy.deepcopy(customer_list)
+            if name:
+                customer_list_name = []
+                sql_str = "select * from customer where User_Name like \'%" + name + "%\'"
+                cursor.execute(sql_str)
+                customer_data_name = cursor.fetchall()
+                for item in customer_data_name:
+                    customer_list_name.append(list(item))
+            if address:
+                customer_list_address = []
+                sql_str = "select * from customer where User_Address like \'%" + address + "%\'"
+                cursor.execute(sql_str)
+                customer_data_address = cursor.fetchall()
+                for item in customer_data_address:
+                    customer_list_address.append(list(item))
+            if contacts_name:
+                customer_list_contacts_name = []
+                sql_str = "select * from customer where User_Contacts_Name like \'%" + contacts_name + "%\'"
+                cursor.execute(sql_str)
+                customer_data_contacts_name = cursor.fetchall()
+                for item in customer_data_contacts_name:
+                    customer_list_contacts_name.append(list(item))
+            customer_result_list = []
+            for customer in customer_list_name:
+                if customer in customer_list_address:
+                    if customer in customer_list_contacts_name:
+                        customer_result_list.append(customer)
+            """flash(customer_list)
+            flash(customer_list_address)
+            flash(customer_result_list)"""
+            return render_template("customer_info_employee.html", username=username, customer_data=customer_result_list)
+
+    return render_template("customer_info_employee.html", username=username, customer_data=customer_data)
+
+
+@app.route("/deposit_account_employee/<username>", methods=['GET', 'POST'])
+def deposit_account_employee(username):
+    permission = session.get(username)
+    if not permission:
+        flash('非法请求，跳转到初始页')
+        return redirect(url_for('index'))
+    currency_show = ['人民币', '美元', '欧元', '日元']
+    sql_str = "select cd.Account_ID,c.User_ID,c.User_Name,Account_balance,Reg_Bank,Currency_type,Interest_Rate " \
+              "from depositaccount " \
+              "inner join customer_depositaccount cd on depositaccount.Account_ID = cd.Account_ID " \
+              "inner join customer c on cd.User_ID = c.User_ID"
+    cursor.execute(sql_str)
+    deposit_account_data = cursor.fetchall()
+    deposit_account_list = []
+    for item in deposit_account_data:
+        deposit_account_list.append(list(item))
+    if request.method == 'POST':
+        name = request.form["name"]
+        bank = request.form["bank"]
+        currency_type = request.form["currency_type"]
+        flag_name = flag_bank = flag_currency = 0
+        if name:
+            flag_name = 1
+            account_list_name = []
+            sql_str = "select Account_ID from customer " \
+                      "inner join customer_depositaccount on customer.User_ID = customer_depositaccount.User_ID " \
+                      "where User_Name like \'%" + name + "%\'"
+            cursor.execute(sql_str)
+            data_name = cursor.fetchall()
+            for item in data_name:
+                account_list_name.append(item[0])
+        if bank != '-1':
+            flag_bank = 1
+            account_list_bank = []
+            sql_str = "select Account_ID from depositaccount where Reg_Bank = \'" + bank + "\'"
+            cursor.execute(sql_str)
+            data_bank = cursor.fetchall()
+            for item in data_bank:
+                account_list_bank.append(item[0])
+        if currency_type != '-1':
+            flag_currency = 1
+            account_list_currency = []
+            sql_str = "select Account_ID from depositaccount where Currency_type = \'" + currency_type + "\'"
+            cursor.execute(sql_str)
+            data_currency = cursor.fetchall()
+            for item in data_currency:
+                account_list_currency.append(item[0])
+
+        sql_str = "select Account_ID from depositaccount"
+        cursor.execute(sql_str)
+        account_data = cursor.fetchall()
+        account_list = []
+        for item in account_data:
+            account_list.append(item[0])
+
+        if flag_name == 0:
+            account_list_name = copy.deepcopy(account_list)
+        if flag_bank == 0:
+            account_list_bank = copy.deepcopy(account_list)
+        if flag_currency == 0:
+            account_list_currency = copy.deepcopy(account_list)
+
+        """flash(account_list)
+        flash(account_list_name)
+        flash(account_list_currency)
+        flash(account_list_bank)"""
+
+        result_list = []
+        for item in deposit_account_list:
+            # flash(item)
+            if item[0] in account_list_bank:
+                if item[0] in account_list_name:
+                    if item[0] in account_list_currency:
+                        result_list.append(item)
+        # flash(result_list)
+        return render_template("deposit_account_employee.html", username=username, currency_show=currency_show,
+                               deposit_account_data=result_list, bank_list=bank_list)
+
+    return render_template("deposit_account_employee.html", username=username, currency_show=currency_show,
+                           deposit_account_data=deposit_account_data, bank_list=bank_list)
+
+
+@app.route("/deposit_interest_change/<username>/<account_id>", methods=['GET', 'POST'])
+def deposit_interest_change(username, account_id):
+    flash("当前修改的账户号："+account_id)
+    permission = session.get(username)
+    if not permission:
+        flash('非法请求，跳转到初始页')
+        return redirect(url_for('index'))
+    if request.method == 'POST':
+        new_interest = request.form['new_interest']
+        flash(new_interest)
+        if not isfloat(new_interest):
+            flash("请输入数字")
+            return redirect(url_for("deposit_interest_change", username=username, account_id=account_id))
+        if float(new_interest) < 0 or float(new_interest) > 1:
+            flash("利率要求在0到1之间")
+            return redirect(url_for("deposit_interest_change", username=username, account_id=account_id))
+        sql_str = "update depositaccount set Interest_Rate = \'" + new_interest + \
+                  "\' where Account_ID = \'" + account_id + "\'"
+        cursor.execute(sql_str)
+        db.commit()
+        flash("成功变更利率，跳转储蓄账户页")
+        return redirect(url_for("deposit_account_employee", username=username))
+    return render_template("deposit_interest_change.html", username=username, account_id=account_id)
 
 
 if __name__ == '__main__':

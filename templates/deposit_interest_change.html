@@ -20,18 +20,15 @@
             <li><a href="{{ url_for('logout', username=username) }}">登出</a></li>
         </ul>
     </nav>
-    <p style="font-size:20px;font-weight: bold; margin-top: 10px">支行列表</p>
-    <small><p style="color: gray;margin-top: -20px;margin-bottom: 20px"> 点击"详情"查看支行员工 （ps:
-        本系统未实现银行资产的自动变更，要多少就有多少💰和💴（bushi）</p></small>
-    <ul class="list">
-        {% for bank in bank_list %}
-            <li>{{ bank[0] }} - 当前资产 ￥{{ bank[1] }}
-                <span class="float-right">
-            <a class="yellow_button" href="{{ url_for('sub_bank',bank_name=bank[0]) }}" target="_blank">详情</a>
-        </span>
-            </li>
+    <p style="font-size:20px;font-weight: bold; margin-top: 10px">变更利率</p>
+    <small><p style="color: gray;margin-top: -20px;margin-bottom: 20px"> 在下面的输入栏输入变更后的利率</p>
+    </small>
 
-        {% endfor %}
-    </ul>
+    <form method="post">
+        <input type="text" class="input" placeholder="利率要求在0到1之间" name="new_interest" required/>
+
+        <input class="btn" type="submit" name="submit" value="提交">
+    </form>
+
 
 {% endblock %}

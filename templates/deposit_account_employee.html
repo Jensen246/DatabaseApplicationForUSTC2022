@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <nav>
+        <ul>
+            <li><a href="{{ url_for('index_employee',username=username) }}">支行信息</a></li>
+            <li><a href="{{ url_for('customer_info_employee',username=username) }}">客户管理</a></li>
+            <li>
+                <div class="dropdown">
+                    <a href="#" class="dropbtn">账户管理</a>
+                    <div class="dropdown-content">
+                        <a href="{{ url_for('deposit_account_employee', username=username) }}">储蓄账户管理</a>
+                        <a href="{{ url_for('info_employee', username=username) }}">支票账户管理</a>
+                    </div>
+                </div>
+            </li>
+            <li><a href="{{ url_for('info_employee',username=username) }}">我的信息</a></li>
+            <li><a href="{{ url_for('info_employee',username=username) }}">贷款管理</a></li>
+            <li><a href="{{ url_for('info_employee',username=username) }}">业务统计</a></li>
+            <li><a href="{{ url_for('logout', username=username) }}">登出</a></li>
+        </ul>
+    </nav>
+    <p style="font-size:20px;font-weight: bold; margin-top: 10px">储蓄账户信息</p>
+    <small><p style="color: gray;margin-top: -20px;margin-bottom: 20px"> 可通过姓名、开户行和货币种类查询符合条件的储蓄账户及公用一个储蓄账户的客户，并且可以修改每个账户的利率</p>
+    </small>
+
+    <div style="margin-bottom: 20px">
+        <form class="inline-form" method="post">
+            姓名 <input type="text" class="input" name="name"/>
+            &nbsp;
+            开户行
+            <select id="bank" name="bank" required>
+                <option value=-1>任意</option>
+                {% for bank in bank_list %}
+                    <option value="{{ bank }}">{{ bank }}</option>
+                {% endfor %}
+            </select>
+            &nbsp;
+            货币种类
+            <select id="currency_type" name="currency_type" required>
+                <option value=-1>任意</option>
+                <option value=0>人民币</option>
+                <option value=1>美元</option>
+                <option value=2>欧元</option>
+                <option value=3>日元</option>
+            </select>
+            &nbsp;
+            <input class="btn" type="submit" name="submit" value="查询">
+        </form>
+    </div>
+
+    <table class="gridtable">
+        <tr>
+            <th>账户号</th>
+            <th>身份证号</th>
+            <th>姓名</th>
+            <th>余额</th>
+            <th>开户行</th>
+            <th>货币类型</th>
+            <th>利率</th>
+            <th>&nbsp;</th>
+        </tr>
+        {% for account in deposit_account_data %}
+            <tr>
+                <td>
+                    <center>{{ account[0] }}</center>
+                </td>
+                <td>
+                    <center>{{ account[1] }}</center>
+                </td>
+                <td>
+                    <center>{{ account[2] }}</center>
+                </td>
+                <td>
+                    <center>{{ account[3] }}</center>
+                </td>
+                <td>
+                    <center>{{ account[4] }}</center>
+                </td>
+                <td>
+                    <center>
+                        {{ currency_show[account[5]] }}
+                    </center>
+                </td>
+                <td>
+                    <center>{{ account[6] }}</center>
+                </td>
+                <td>
+                    <center>
+                        <a class="btn" href=
+                                "{{ url_for('deposit_interest_change', username=username, account_id=account[0]) }}">
+                        修改利率</a>
+                    </center>
+                </td>
+            </tr>
+        {% endfor %}
+    </table>
+
+{% endblock %}

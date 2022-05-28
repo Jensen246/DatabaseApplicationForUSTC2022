@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <nav>
+        <ul>
+            <li><a href="{{ url_for('index_employee',username=username) }}">支行信息</a></li>
+            <li><a href="{{ url_for('customer_info_employee',username=username) }}">客户管理</a></li>
+            <li>
+                <div class="dropdown">
+                    <a href="#" class="dropbtn">账户管理</a>
+                    <div class="dropdown-content">
+                        <a href="{{ url_for('deposit_account_employee', username=username) }}">储蓄账户管理</a>
+                        <a href="{{ url_for('info_employee', username=username) }}">支票账户管理</a>
+                    </div>
+                </div>
+            </li>
+            <li><a href="{{ url_for('info_employee',username=username) }}">我的信息</a></li>
+            <li><a href="{{ url_for('info_employee',username=username) }}">贷款管理</a></li>
+            <li><a href="{{ url_for('info_employee',username=username) }}">业务统计</a></li>
+            <li><a href="{{ url_for('logout', username=username) }}">登出</a></li>
+        </ul>
+    </nav>
+    <p style="font-size:20px;font-weight: bold; margin-top: 10px">客户信息</p>
+    <small><p style="color: gray;margin-top: -20px;margin-bottom: 20px"> 在下面的输入栏输入字段，即可通过姓名、地址或联系人姓名查询符合条件的客户</p>
+    </small>
+
+    <div style="margin-bottom: 20px">
+        <form class="inline-form" method="post">
+            姓名 <input type="text" class="input" name="name"/>
+            &nbsp;
+            地址 <input type="text" class="input" name="address"/>
+            &nbsp;
+            联系人姓名 <input type="text" class="input" name="contacts_name"/>
+            &nbsp;
+            <input class="btn" type="submit" name="submit" value="查询">
+        </form>
+    </div>
+
+    <table class="gridtable" width="1000px">
+        <tr>
+            <th>身份证号</th>
+            <th>姓名</th>
+            <th>联系电话</th>
+            <th>地址</th>
+            <th>联系人姓名</th>
+            <th>联系人电话</th>
+            <th>联系人邮箱</th>
+            <th>与联系人关系</th>
+            <th>用户名</th>
+        </tr>
+        {% for customer in customer_data %}
+            <tr>
+                <td>
+                    <center>{{ customer[0] }}</center>
+                </td>
+                <td>
+                    <center>{{ customer[1] }}</center>
+                </td>
+                <td>
+                    <center>{{ customer[2] }}</center>
+                </td>
+                <td>
+                    <center>{{ customer[3] }}</center>
+                </td>
+                <td>
+                    <center>{{ customer[4] }}</center>
+                </td>
+                <td>
+                    <center>{{ customer[5] }}</center>
+                </td>
+                <td>
+                    <center>{{ customer[6] }}</center>
+                </td>
+                <td>
+                    <center>{{ customer[7] }}</center>
+                </td>
+                <td>
+                    <center>{{ customer[8] }}</center>
+                </td>
+            </tr>
+        {% endfor %}
+    </table>
+
+{% endblock %}
