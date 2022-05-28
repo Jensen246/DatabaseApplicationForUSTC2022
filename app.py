@@ -1335,14 +1335,15 @@ def deposit_account_employee(username):
 
 @app.route("/deposit_interest_change/<username>/<account_id>", methods=['GET', 'POST'])
 def deposit_interest_change(username, account_id):
-    flash("当前修改的账户号："+account_id)
     permission = session.get(username)
     if not permission:
         flash('非法请求，跳转到初始页')
         return redirect(url_for('index'))
+
+    flash("当前修改的账户号：" + account_id)
     if request.method == 'POST':
         new_interest = request.form['new_interest']
-        flash(new_interest)
+        # flash(new_interest)
         if not isfloat(new_interest):
             flash("请输入数字")
             return redirect(url_for("deposit_interest_change", username=username, account_id=account_id))
@@ -1356,6 +1357,235 @@ def deposit_interest_change(username, account_id):
         flash("成功变更利率，跳转储蓄账户页")
         return redirect(url_for("deposit_account_employee", username=username))
     return render_template("deposit_interest_change.html", username=username, account_id=account_id)
+
+
+@app.route("/check_account_employee/<username>", methods=['GET', 'POST'])
+def check_account_employee(username):
+    permission = session.get(username)
+    if not permission:
+        flash('非法请求，跳转到初始页')
+        return redirect(url_for('index'))
+    sql_str = "select cc.Account_ID,c.User_ID,c.User_Name,Account_balance,Reg_Bank,Overdraft " \
+              "from checkaccount " \
+              "inner join customer_checkaccount cc on checkaccount.Account_ID = cc.Account_ID " \
+              "inner join customer c on cc.User_ID = c.User_ID"
+    cursor.execute(sql_str)
+    check_account_data = cursor.fetchall()
+    check_account_list = []
+    for item in check_account_data:
+        check_account_list.append(list(item))
+    if request.method == 'POST':
+        name = request.form["name"]
+        bank = request.form["bank"]
+
+        flag_name = flag_bank = 0
+        if name:
+            flag_name = 1
+            account_list_name = []
+            sql_str = "select Account_ID from customer " \
+                      "inner join customer_checkaccount on customer.User_ID = customer_checkaccount.User_ID " \
+                      "where User_Name like \'%" + name + "%\'"
+            cursor.execute(sql_str)
+            data_name = cursor.fetchall()
+            for item in data_name:
+                account_list_name.append(item[0])
+        if bank != '-1':
+            flag_bank = 1
+            account_list_bank = []
+            sql_str = "select Account_ID from checkaccount where Reg_Bank = \'" + bank + "\'"
+            cursor.execute(sql_str)
+            data_bank = cursor.fetchall()
+            for item in data_bank:
+                account_list_bank.append(item[0])
+
+        sql_str = "select Account_ID from checkaccount"
+        cursor.execute(sql_str)
+        account_data = cursor.fetchall()
+        account_list = []
+        for item in account_data:
+            account_list.append(item[0])
+
+        if flag_name == 0:
+            account_list_name = copy.deepcopy(account_list)
+        if flag_bank == 0:
+            account_list_bank = copy.deepcopy(account_list)
+
+        result_list = []
+        for item in check_account_list:
+            # flash(item)
+            if item[0] in account_list_bank:
+                if item[0] in account_list_name:
+                    result_list.append(item)
+        # flash(result_list)
+        return render_template("check_account_employee.html", username=username,
+                               check_account_data=result_list, bank_list=bank_list)
+
+    return render_template("check_account_employee.html", username=username,
+                           check_account_data=check_account_data, bank_list=bank_list)
+
+
+@app.route("/check_overdraft_change/<username>/<account_id>", methods=['GET', 'POST'])
+def check_overdraft_change(username, account_id):
+    permission = session.get(username)
+    if not permission:
+        flash('非法请求，跳转到初始页')
+        return redirect(url_for('index'))
+
+    flash("当前修改的账户号是：" + account_id)
+    sql_str = "select Account_balance from checkaccount where Account_ID = \'" + account_id + "\'"
+    cursor.execute(sql_str)
+    balance = cursor.fetchall()[0][0]
+    if balance < 0:
+        flash("当前账户已经透支的金额为" + str(-float(balance)))
+    else:
+        flash("该账户暂无透支金额")
+    if request.method == 'POST':
+        new_overdraft = request.form['new_overdraft']
+        # flash(new_overdraft)
+        if not isfloat(new_overdraft):
+            flash("请输入数字")
+            return redirect(url_for("check_overdraft_change", username=username, account_id=account_id))
+        # 透支额度修改后不能比已经透支的金额更小
+
+        if float(new_overdraft) < 0:
+            flash("请输入正数")
+            return redirect(url_for("check_overdraft_change", username=username, account_id=account_id))
+        if balance < 0 and float(new_overdraft) < -balance:
+            flash("透支额度不能小于已经透支的金额")
+            return redirect(url_for("check_overdraft_change", username=username, account_id=account_id))
+        sql_str = "update checkaccount set Overdraft = \'" + new_overdraft + \
+                  "\' where Account_ID = \'" + account_id + "\'"
+        cursor.execute(sql_str)
+        db.commit()
+        flash("成功变更透支额度，跳转储蓄账户页")
+        return redirect(url_for("check_account_employee", username=username))
+    return render_template("check_overdraft_change.html", username=username, account_id=account_id)
+
+
+@app.route('/loan_employee/<username>', methods=['GET', 'POST'])
+def loan_employee(username):
+    permission = session.get(username)
+    if not permission:
+        flash('非法请求，跳转到初始页')
+        return redirect(url_for('index'))
+
+    show_loan_status = ["未发放", "发放中", "发放完成"]
+    sql_str = "select cl.Loan_ID,c.User_ID,c.User_Name,Bank_Name,Loan_Money,Loan_Status " \
+              "from loan inner join customer_loan cl on loan.Loan_ID = cl.Loan_ID " \
+              "inner join customer c on cl.User_ID = c.User_ID order by Loan_Status ASC "
+    cursor.execute(sql_str)
+    loan_data = cursor.fetchall()
+    loan_list = []
+    for item in loan_data:
+        loan_list.append(list(item))
+    # 计算已经支付的金额
+    for item in loan_list:
+        payed_money = 0
+        loan_id = item[0]
+        sql_str = "select Pay_Money from payment where Loan_ID = \'" + loan_id + "\'"
+        cursor.execute(sql_str)
+        pay_data = cursor.fetchall()
+        for pay_item in pay_data:
+            payed_money = payed_money + pay_item[0]
+        item.append(payed_money)
+    if request.method == 'POST':
+        name = request.form['name']
+        bank = request.form['bank']
+        status = request.form['status']
+
+        flag_name = flag_bank = flag_status = 0
+        if name:
+            flag_name = 1
+            loan_list_name = []
+            sql_str = "select loan.Loan_ID from loan " \
+                      "inner join customer_loan cl on loan.Loan_ID = cl.Loan_ID " \
+                      "inner join customer c on c.User_ID = cl.User_ID " \
+                      "where c.User_Name like \'%" + name + "%\'"
+            cursor.execute(sql_str)
+            data_name = cursor.fetchall()
+            for item in data_name:
+                loan_list_name.append(item[0])
+        if bank != '-1':
+            flag_bank = 1
+            loan_list_bank = []
+            sql_str = "select Loan_ID from loan where Bank_Name = \'" + bank + "\'"
+            cursor.execute(sql_str)
+            data_bank = cursor.fetchall()
+            for item in data_bank:
+                loan_list_bank.append(item[0])
+        if status != '-1':
+            flag_status = 1
+            loan_list_status = []
+            sql_str = "select Loan_ID from loan where Loan_Status = \'" + status + "\'"
+            cursor.execute(sql_str)
+            data_status = cursor.fetchall()
+            for item in data_status:
+                loan_list_status.append(item[0])
+
+        sql_str = "select Loan_ID from loan"
+        cursor.execute(sql_str)
+        loan_id_data = cursor.fetchall()
+        loan_id_list = []
+        for item in loan_id_data:
+            loan_id_list.append(item[0])
+
+        if flag_name == 0:
+            loan_list_name = copy.deepcopy(loan_id_list)
+        if flag_bank == 0:
+            loan_list_bank = copy.deepcopy(loan_id_list)
+        if flag_status == 0:
+            loan_list_status = copy.deepcopy(loan_id_list)
+
+        result_list = []
+        for item in loan_list:
+            if item[0] in loan_list_name:
+                if item[0] in loan_list_bank:
+                    if item[0] in loan_list_status:
+                        result_list.append(item)
+        return render_template("loan_employee.html", bank_list=bank_list,
+                               username=username, loan_list=result_list, show_loan_status=show_loan_status)
+
+    return render_template("loan_employee.html", bank_list=bank_list,
+                           username=username, loan_list=loan_list, show_loan_status=show_loan_status)
+
+
+@app.route('/pay_loan/<username>_<loan_id>/<loan_money>_<payed_money>_<status>', methods=['GET', 'POST'])
+def pay_loan(username, loan_id, loan_money, payed_money, status):
+    permission = session.get(username)
+    if not permission:
+        flash('非法请求，跳转到初始页')
+        return redirect(url_for('index'))
+
+    rest_money = float(loan_money) - float(payed_money)
+    flash("贷款号" + loan_id + "：待支付金额为 " + str(rest_money))
+    if request.method == 'POST':
+        pay_money = request.form['pay_money']
+        if not isfloat(pay_money):
+            flash("请输入数字")
+            return redirect(url_for("pay_loan", status=status,
+                                    username=username, loan_id=loan_id, loan_money=loan_money, payed_money=payed_money))
+        if float(pay_money) < 0:
+            flash("请输入正数")
+            return redirect(url_for("pay_loan", status=status,
+                                    username=username, loan_id=loan_id, loan_money=loan_money, payed_money=payed_money))
+        if float(pay_money) > rest_money:
+            flash("发放金额不能大于待支付金额")
+            return redirect(url_for("pay_loan", status=status,
+                                    username=username, loan_id=loan_id, loan_money=loan_money, payed_money=payed_money))
+        sql_str = "insert into payment value (\'" + loan_id + "\',\'" + date + "\',\'" + pay_money + "\')"
+        cursor.execute(sql_str)
+        db.commit()
+        if status == '0':
+            sql_str = "update loan set Loan_Status = 1 where Loan_ID =\'" + loan_id + "\'"
+            cursor.execute(sql_str)
+            db.commit()
+        if pay_money == rest_money:
+            sql_str = "update loan set Loan_Status = 2 where Loan_ID =\'" + loan_id + "\'"
+            cursor.execute(sql_str)
+            db.commit()
+        flash("发放完成，回到贷款业务管理页面")
+        return redirect(url_for("loan_employee", username=username))
+    return render_template("pay_loan.html", username=username)
 
 
 if __name__ == '__main__':

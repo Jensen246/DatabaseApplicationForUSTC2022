@@ -20,62 +20,78 @@
             <li><a href="{{ url_for('logout', username=username) }}">登出</a></li>
         </ul>
     </nav>
-    <p style="font-size:20px;font-weight: bold; margin-top: 10px">客户信息</p>
-    <small><p style="color: gray;margin-top: -20px;margin-bottom: 20px"> 在下面的输入栏输入字段，即可通过姓名、地址或联系人姓名查询符合条件的客户</p>
+    <p style="font-size:20px;font-weight: bold; margin-top: 10px">贷款业务信息</p>
+    <small><p style="color: gray;margin-top: -20px;margin-bottom: 20px"> 可通过姓名、开户行和发放状态查询符合条件的贷款客户，同时显示与结果共用贷款的客户</p>
     </small>
 
     <div style="margin-bottom: 20px">
         <form class="inline-form" method="post">
             姓名 <input type="text" class="input" name="name"/>
             &nbsp;
-            地址 <input type="text" class="input" name="address"/>
+            开户行
+            <select id="bank" name="bank" required>
+                <option value=-1>任意</option>
+                {% for bank in bank_list %}
+                    <option value="{{ bank }}">{{ bank }}</option>
+                {% endfor %}
+            </select>
             &nbsp;
-            联系人姓名 <input type="text" class="input" name="contacts_name"/>
+            发放状态
+            <select id="status" name="status" required>
+                <option value=-1>任意</option>
+                <option value=0>未发放</option>
+                <option value=1>发放中</option>
+                <option value=2>发放完成</option>
+            </select>
             &nbsp;
             <input class="btn" type="submit" name="submit" value="查询">
         </form>
     </div>
 
-    <table class="gridtable" width="1000px">
+    <table class="gridtable">
         <tr>
+            <th>贷款号</th>
             <th>身份证号</th>
             <th>姓名</th>
-            <th>联系电话</th>
-            <th>地址</th>
-            <th>联系人姓名</th>
-            <th>联系人电话</th>
-            <th>联系人邮箱</th>
-            <th>与联系人关系</th>
-            <th>用户名</th>
+            <th>开户行</th>
+            <th>贷款金额</th>
+            <th>发放状态</th>
+            <th>已发放金额</th>
+            <th>&nbsp;</th>
         </tr>
-        {% for customer in customer_data %}
+        {% for loan in loan_list %}
             <tr>
                 <td>
-                    <center>{{ customer[0] }}</center>
+                    <center>{{ loan[0] }}</center>
                 </td>
                 <td>
-                    <center>{{ customer[1] }}</center>
+                    <center>{{ loan[1] }}</center>
                 </td>
                 <td>
-                    <center>{{ customer[2] }}</center>
+                    <center>{{ loan[2] }}</center>
                 </td>
                 <td>
-                    <center>{{ customer[3] }}</center>
+                    <center>{{ loan[3] }}</center>
                 </td>
                 <td>
-                    <center>{{ customer[4] }}</center>
+                    <center>{{ loan[4] }}</center>
                 </td>
                 <td>
-                    <center>{{ customer[5] }}</center>
+                    <center>{{ show_loan_status[loan[5]] }}</center>
                 </td>
                 <td>
-                    <center>{{ customer[6] }}</center>
+                    <center>{{ loan[6] }}</center>
                 </td>
                 <td>
-                    <center>{{ customer[7] }}</center>
-                </td>
-                <td>
-                    <center>{{ customer[8] }}</center>
+                    <center>
+                        {% if loan[5] != 2 %}
+                            <a class="btn" href="{{ url_for("pay_loan",
+                        username=username,loan_id=loan[0],loan_money=loan[4],payed_money=loan[6],status=loan[5]) }}">
+                                发放贷款</a>
+                        {% else %}
+                            &nbsp;
+                        {% endif %}
+                    </center>
                 </td>
             </tr>
         {% endfor %}

@@ -10,12 +10,12 @@
                     <a href="#" class="dropbtn">账户管理</a>
                     <div class="dropdown-content">
                         <a href="{{ url_for('deposit_account_employee', username=username) }}">储蓄账户管理</a>
-                        <a href="{{ url_for('info_employee', username=username) }}">支票账户管理</a>
+                        <a href="{{ url_for('check_account_employee', username=username) }}">支票账户管理</a>
                     </div>
                 </div>
             </li>
             <li><a href="{{ url_for('info_employee',username=username) }}">我的信息</a></li>
-            <li><a href="{{ url_for('info_employee',username=username) }}">贷款管理</a></li>
+            <li><a href="{{ url_for('loan_employee',username=username) }}">贷款管理</a></li>
             <li><a href="{{ url_for('info_employee',username=username) }}">业务统计</a></li>
             <li><a href="{{ url_for('logout', username=username) }}">登出</a></li>
         </ul>
