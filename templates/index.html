@@ -1,27 +1,61 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<nav>
-    <ul>
-    <li><a href="{{ url_for('index') }}">主页</a></li>
-    <li><a href="{{ url_for('login_customer') }}">客户登录</a></li>
-    <li><a href="{{ url_for('register') }}">客户注册</a></li>
-    <li><a href="{{ url_for('login_employee') }}">员工登录</a></li>
-    </ul>
-</nav>
-<p style="font-size:20px;font-weight: bold; margin-top: 10px">支行列表</p>
-<small><p style="color: gray;margin-top: -20px;margin-bottom: 20px"> 点击"详情"查看支行员工</p></small>
-<ul class="list">
-    {% for bank in bank_list %}
-    <li>{{bank}}
-        <span class="float-right">
-            <a class="yellow_button" href="{{ url_for('sub_bank',bank_name=bank) }}" target="_blank">详情</a>
-        </span>
-    </li>
+    <nav>
+        <ul>
+            <li><a href="{{ url_for('index') }}">主页</a></li>
+            <li><a href="{{ url_for('subbranch_index') }}">支行列表</a></li>
+            <li><a href="{{ url_for('login_customer') }}">客户登录</a></li>
+            <li><a href="{{ url_for('register') }}">客户注册</a></li>
+            <li><a href="{{ url_for('login_employee') }}">员工登录</a></li>
+        </ul>
+    </nav>
+    <p style="font-size:20px;font-weight: bold; margin-top: 10px">主页 - 功能介绍</p>
+    <small><p style="color: gray;margin-top: -20px;margin-bottom: 20px"> 点击页面下方链接进入项目仓库</p></small>
 
-    {% endfor %}
-</ul>
-<!--
+    <div class="list">
+        <div style="color:#333;padding: 20px 50px;font-family:"楷体">
+            <h2 id='使用说明'>使用说明</h2>
+            <p>当前为登录/注册页面，可以查看各支行的员工信息，以及注册新<strong>客户</strong>用户（<strong>不含员工</strong>用户，员工用户信息在初始化sql文件中插入数据库，且只能修改密码，不可修改其他属性），登录用户分为两类：客户和员工，他们的权限区分如下：
+            </p>
+            <blockquote><p><strong>客户用户：</strong></p>
+                <blockquote><p>客户管理：增、删、改、查自己的信息（如果客户存在关联账户或贷款记录则不允许删除）</p>
+                </blockquote>
+                <blockquote><p>账户管理：账户开户、销户、修改，包括储蓄账户和支票账户，账户号不可以修改；新增账户时需要从对应支行的对应部门选择一个员工做自己的账户负责人</p>
+                </blockquote>
+                <blockquote><p>贷款管理：贷款信息的增、删、查功能“增”指的是申请新的贷款，新增贷款时需要从对应支行的对应部门选择一个员工做自己的账户负责人</p>
+                </blockquote>
+                <ul>
+                    <li>
+                        “删”指的是删除贷款记录，删除贷款需要其状态为”发放完成“；“增”指的是发起贷款，客户发起贷款后贷款状态为“未发放”，若用户在一家支行新增贷款时还没有这家支行对应的负责员工，需要选定一名负责员工；
+                    </li>
+                    <li>
+                        “查”指的是显示该用户每笔贷款的信息（状态分为：未开始发放、发放中、已全部发放）；贷款状态分为：未开始发放、发放中、已全部发放，客户发起贷款后贷款状态为“未发放”，由员工发放部分贷款后贷款状态为“发放中”，金额全部发放完后状态改为“已全部发放”；
+                    </li>
+
+                </ul>
+                <blockquote><p>关系员工管理：可以查看和更改更改自己在各家支行各类业务的负责员工</p>
+                </blockquote>
+            </blockquote>
+            <blockquote><p><strong>员工用户：</strong></p>
+                <blockquote><p>客户管理：由客户自己操作，员工可以查看所有客户的个人信息，以及可以根据姓名、地址或联系人姓名中包含的字段模糊搜索客户</p>
+                </blockquote>
+                <blockquote><p>账户管理：开户、销户、存款、取款功能由客户自己操作，员工有：</p>
+                </blockquote>
+                <ul>
+                    <li>查看权限：可以从客户管理界面查看每个客户的账户，也可以根据姓名或账户号搜索客户</li>
+                    <li>以及部分客户所没有的修改权限：修改储蓄账户的利率（限定范围为0~1），以及修改支票账户的透支额</li>
+                    <li>贷款管理：申请贷款、删除贷款由用户自己实现，员工负责进行发放贷款，也可以根据姓名或贷款号搜索客户</li>
+                    <li>业务统计：按业务分类（储蓄、支票、贷款）和时间（月、季、年）统计各个支行的业务总金额和用户数， 统计的结果以表格形式展示</li>
+
+                </ul>
+            </blockquote>
+            <p>&nbsp;</p>
+            <p>&nbsp;</p>
+        </div>
+    </div>
+
+    <!--
 <div align="center" style="position:relative;top:100px">
     <center><a class="index_button" href="{{ url_for('index') }}">
     客户登录</a></center>

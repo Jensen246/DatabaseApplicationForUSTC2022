@@ -3,9 +3,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 # from LoginManage import *
 from DbProcess import *
 from forms_verify import *
-from functools import wraps
 import copy
-import numpy as np
 from IsFloat import isfloat
 import datetime
 
@@ -61,7 +59,13 @@ def login_required():
 def index():
     # flash(bank_list)
     flash("您还没有登录,请先登录或注册")
-    return render_template('index.html', bank_list=bank_list)
+    return render_template('index.html')
+
+
+@app.route('/subbranch_index')
+def subbranch_index():
+    flash("您还没有登录,请先登录或注册")
+    return render_template('subbranch_index.html', bank_list=bank_list)
 
 
 # 客户登录后的主界面
@@ -1731,6 +1735,11 @@ def statistics(username):
                            year_dict_loan=year_dict_loan,
                            month_dict_loan=month_dict_loan,
                            quarter_dict_loan=quarter_dict_loan)
+
+
+@app.errorhandler(404)  # 传入要处理的错误代码
+def page_not_found(e):  # 接受异常对象作为参数
+    return render_template('404.html'), 404  # 返回模板和状态码
 
 
 if __name__ == '__main__':

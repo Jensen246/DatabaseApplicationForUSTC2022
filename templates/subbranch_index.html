@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <nav>
+        <ul>
+            <li><a href="{{ url_for('index') }}">主页</a></li>
+            <li><a href="{{ url_for('subbranch_index') }}">支行列表</a></li>
+            <li><a href="{{ url_for('login_customer') }}">客户登录</a></li>
+            <li><a href="{{ url_for('register') }}">客户注册</a></li>
+            <li><a href="{{ url_for('login_employee') }}">员工登录</a></li>
+        </ul>
+    </nav>
+    <p style="font-size:20px;font-weight: bold; margin-top: 10px">支行列表</p>
+    <small><p style="color: gray;margin-top: -20px;margin-bottom: 20px"> 点击"详情"查看支行员工</p></small>
+    <ul class="list">
+        {% for bank in bank_list %}
+            <li>{{ bank }}
+                <span class="float-right">
+            <a class="yellow_button" href="{{ url_for('sub_bank',bank_name=bank) }}" target="_blank">详情</a>
+        </span>
+            </li>
+
+        {% endfor %}
+    </ul>
+    <!--
+<div align="center" style="position:relative;top:100px">
+    <center><a class="index_button" href="{{ url_for('index') }}">
+    客户登录</a></center>
+</div>
+
+<div align="center" style="position:relative;top:200px">
+    <center><a class="index_button" href="{{ url_for('index') }}">
+
+    客户注册</a></center>
+</div>
+
+<div align="center" style="position:relative;top:300px">
+    <center><a class="index_button" href="{{ url_for('index') }}">
+    员工登录</a></center>
+</div>
+-->
+{% endblock %}
