@@ -7,6 +7,7 @@ from functools import wraps
 import copy
 import numpy as np
 from IsFloat import isfloat
+import datetime
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = '123456'
@@ -1586,6 +1587,150 @@ def pay_loan(username, loan_id, loan_money, payed_money, status):
         flash("发放完成，回到贷款业务管理页面")
         return redirect(url_for("loan_employee", username=username))
     return render_template("pay_loan.html", username=username)
+
+
+@app.route("/statistics/<username>")
+def statistics(username):
+    permission = session.get(username)
+    if not permission:
+        flash('非法请求，跳转到初始页')
+        return redirect(url_for('index'))
+
+    # 通过子串匹配确定是否为同一月度/季度/年度，下面三个函数分别以字符串形式返回待匹配的子串
+    def get_year(date_in_data):
+        return str(date_in_data)[:4]
+
+    def get_month(date_in_data):
+        return str(date_in_data)[:7]
+
+    def get_quarter(date_in_data):
+        year = get_year(date_in_data)
+        month = int(date_in_data.month)
+        quarter = (month - 1) // 3 + 1
+        return (str(year) + "-" + str(quarter))
+
+    sql_str = "select Account_balance,Reg_Date,Reg_Bank from depositaccount"
+    cursor.execute(sql_str)
+    deposit_data = cursor.fetchall()
+    sql_str = "select Account_balance,Reg_Date,Reg_Bank from checkaccount"
+    cursor.execute(sql_str)
+    check_data = cursor.fetchall()
+    sql_str = "select Pay_money,Pay_Date,l.Bank_Name from payment inner join loan l on payment.Loan_ID = l.Loan_ID"
+    cursor.execute(sql_str)
+    loan_data = cursor.fetchall()
+
+    # 年度
+    year_dict_deposit = {}
+    for item in deposit_data:
+        year = get_year(item[1])
+        bank = item[2]
+        if not year_dict_deposit.get(bank):
+            year_dict_deposit[bank] = {}
+        if not year_dict_deposit[bank].get(year):
+            year_dict_deposit[bank][year] = float(item[0])
+        else:
+            year_dict_deposit[bank][year] += float(item[0])
+    # 季度
+    quarter_dict_deposit = {}
+    for item in deposit_data:
+        quarter = get_quarter(item[1])
+        bank = item[2]
+        if not quarter_dict_deposit.get(bank):
+            quarter_dict_deposit[bank] = {}
+        if not quarter_dict_deposit[bank].get(quarter):
+            quarter_dict_deposit[bank][quarter] = float(item[0])
+        else:
+            quarter_dict_deposit[bank][quarter] += float(item[0])
+    # 月度
+    month_dict_deposit = {}
+    for item in deposit_data:
+        month = get_month(item[1])
+        bank = item[2]
+        if not month_dict_deposit.get(bank):
+            month_dict_deposit[bank] = {}
+        if not month_dict_deposit[bank].get(month):
+            month_dict_deposit[bank][month] = float(item[0])
+        else:
+            month_dict_deposit[bank][month] += float(item[0])
+
+    # 年度
+    year_dict_check = {}
+    for item in check_data:
+        year = get_year(item[1])
+        bank = item[2]
+        if not year_dict_check.get(bank):
+            year_dict_check[bank] = {}
+        if not year_dict_check[bank].get(year):
+            year_dict_check[bank][year] = float(item[0])
+        else:
+            year_dict_check[bank][year] += float(item[0])
+    # 季度
+    quarter_dict_check = {}
+    for item in check_data:
+        quarter = get_quarter(item[1])
+        bank = item[2]
+        if not quarter_dict_check.get(bank):
+            quarter_dict_check[bank] = {}
+        if not quarter_dict_check[bank].get(quarter):
+            quarter_dict_check[bank][quarter] = float(item[0])
+        else:
+            quarter_dict_check[bank][quarter] += float(item[0])
+    # 月度
+    month_dict_check = {}
+    for item in check_data:
+        month = get_month(item[1])
+        bank = item[2]
+        if not month_dict_check.get(bank):
+            month_dict_check[bank] = {}
+        if not month_dict_check[bank].get(month):
+            month_dict_check[bank][month] = float(item[0])
+        else:
+            month_dict_check[bank][month] += float(item[0])
+
+    # 年度
+    year_dict_loan = {}
+    for item in loan_data:
+        year = get_year(item[1])
+        bank = item[2]
+        if not year_dict_loan.get(bank):
+            year_dict_loan[bank] = {}
+        if not year_dict_loan[bank].get(year):
+            year_dict_loan[bank][year] = float(item[0])
+        else:
+            year_dict_loan[bank][year] += float(item[0])
+    # 季度
+    quarter_dict_loan = {}
+    for item in loan_data:
+        quarter = get_quarter(item[1])
+        bank = item[2]
+        if not quarter_dict_loan.get(bank):
+            quarter_dict_loan[bank] = {}
+        if not quarter_dict_loan[bank].get(quarter):
+            quarter_dict_loan[bank][quarter] = float(item[0])
+        else:
+            quarter_dict_loan[bank][quarter] += float(item[0])
+    # 月度
+    month_dict_loan = {}
+    for item in loan_data:
+        month = get_month(item[1])
+        bank = item[2]
+        if not month_dict_loan.get(bank):
+            month_dict_loan[bank] = {}
+        if not month_dict_loan[bank].get(month):
+            month_dict_loan[bank][month] = float(item[0])
+        else:
+            month_dict_loan[bank][month] += float(item[0])
+
+    return render_template("statistics.html", username=username,
+                           year_dict_deposit=year_dict_deposit,
+                           month_dict_deposit=month_dict_deposit,
+                           quarter_dict_deposit=quarter_dict_deposit,
+                           year_dict_check=year_dict_check,
+                           month_dict_check=month_dict_check,
+                           quarter_dict_check=quarter_dict_check,
+                           year_dict_loan=year_dict_loan,
+                           month_dict_loan=month_dict_loan,
+                           quarter_dict_loan=quarter_dict_loan)
 
 
 if __name__ == '__main__':

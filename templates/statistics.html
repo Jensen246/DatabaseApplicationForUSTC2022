@@ -1,0 +1,190 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <nav>
+        <ul>
+            <li><a href="{{ url_for('index_employee',username=username) }}">支行信息</a></li>
+            <li><a href="{{ url_for('customer_info_employee',username=username) }}">客户管理</a></li>
+            <li>
+                <div class="dropdown">
+                    <a href="#" class="dropbtn">账户管理</a>
+                    <div class="dropdown-content">
+                        <a href="{{ url_for('deposit_account_employee', username=username) }}">储蓄账户管理</a>
+                        <a href="{{ url_for('check_account_employee', username=username) }}">支票账户管理</a>
+                    </div>
+                </div>
+            </li>
+            <li><a href="{{ url_for('info_employee',username=username) }}">我的信息</a></li>
+            <li><a href="{{ url_for('loan_employee',username=username) }}">贷款管理</a></li>
+            <li><a href="{{ url_for('statistics',username=username) }}">业务统计</a></li>
+            <li><a href="{{ url_for('logout', username=username) }}">登出</a></li>
+        </ul>
+    </nav>
+    <p style="font-size:20px;font-weight: bold; margin-top: 10px">业务统计</p>
+    <small><p style="color: gray;margin-top: -20px;margin-bottom: 20px"> 各类业务各支行的统计数据如下</p>
+    </small>
+
+    <strong><center><p style="font-size: 20px">储蓄账户</p> </center></strong>
+    <br>
+    <p style="font-size:15px;font-weight: bold; margin-top: -10px">年度</p>
+    <table class="gridtable">
+    <tr>
+        <th>支行</th>
+        <th>年份</th>
+        <th>营业额</th>
+    </tr>
+    {% for bank,dict in year_dict_deposit.items() %}
+    {% for year,amount in dict.items() %}
+    <tr>
+        <td><center>{{ bank }}</center></td>
+        <td><center>{{ year }}</center></td>
+        <td><center>{{ amount }}</center></td>
+    </tr>
+    {% endfor %}
+    {% endfor %}
+    </table>
+    <p style="font-size:15px;font-weight: bold; margin-top: 10px">季度</p>
+    <table class="gridtable">
+    <tr>
+        <th>支行</th>
+        <th>季度</th>
+        <th>营业额</th>
+    </tr>
+    {% for bank,dict in quarter_dict_deposit.items() %}
+    {% for quarter,amount in dict.items() %}
+    <tr>
+        <td><center>{{ bank }}</center></td>
+        <td><center>{{ quarter }}</center></td>
+        <td><center>{{ amount }}</center></td>
+    </tr>
+    {% endfor %}
+    {% endfor %}
+    </table>
+    <p style="font-size:15px;font-weight: bold; margin-top: 10px">月度</p>
+    <table class="gridtable">
+    <tr>
+        <th>支行</th>
+        <th>月份</th>
+        <th>营业额</th>
+    </tr>
+    {% for bank,dict in month_dict_deposit.items() %}
+    {% for month,amount in dict.items() %}
+    <tr>
+        <td><center>{{ bank }}</center></td>
+        <td><center>{{ month }}</center></td>
+        <td><center>{{ amount }}</center></td>
+    </tr>
+    {% endfor %}
+    {% endfor %}
+    </table>
+
+    <strong><center><p style="font-size: 20px">支票账户</p> </center></strong>
+    <br>
+    <p style="font-size:15px;font-weight: bold; margin-top: 10px">年度</p>
+    <table class="gridtable">
+    <tr>
+        <th>支行</th>
+        <th>年份</th>
+        <th>营业额</th>
+    </tr>
+    {% for bank,dict in year_dict_check.items() %}
+    {% for year,amount in dict.items() %}
+    <tr>
+        <td><center>{{ bank }}</center></td>
+        <td><center>{{ year }}</center></td>
+        <td><center>{{ amount }}</center></td>
+    </tr>
+    {% endfor %}
+    {% endfor %}
+    </table>
+    <p style="font-size:15px;font-weight: bold; margin-top: 10px">季度</p>
+    <table class="gridtable">
+    <tr>
+        <th>支行</th>
+        <th>季度</th>
+        <th>营业额</th>
+    </tr>
+    {% for bank,dict in quarter_dict_check.items() %}
+    {% for quarter,amount in dict.items() %}
+    <tr>
+        <td><center>{{ bank }}</center></td>
+        <td><center>{{ quarter }}</center></td>
+        <td><center>{{ amount }}</center></td>
+    </tr>
+    {% endfor %}
+    {% endfor %}
+    </table>
+    <p style="font-size:15px;font-weight: bold; margin-top: 10px">月度</p>
+    <table class="gridtable">
+    <tr>
+        <th>支行</th>
+        <th>月份</th>
+        <th>营业额</th>
+    </tr>
+    {% for bank,dict in month_dict_check.items() %}
+    {% for month,amount in dict.items() %}
+    <tr>
+        <td><center>{{ bank }}</center></td>
+        <td><center>{{ month }}</center></td>
+        <td><center>{{ amount }}</center></td>
+    </tr>
+    {% endfor %}
+    {% endfor %}
+    </table>
+
+    <strong><center><p style="font-size: 20px">贷款业务</p> </center></strong>
+    <br>
+    <p style="font-size:15px;font-weight: bold; margin-top: 10px">年度</p>
+    <table class="gridtable">
+    <tr>
+        <th>支行</th>
+        <th>年份</th>
+        <th>营业额</th>
+    </tr>
+    {% for bank,dict in year_dict_loan.items() %}
+    {% for year,amount in dict.items() %}
+    <tr>
+        <td><center>{{ bank }}</center></td>
+        <td><center>{{ year }}</center></td>
+        <td><center>{{ amount }}</center></td>
+    </tr>
+    {% endfor %}
+    {% endfor %}
+    </table>
+    <p style="font-size:15px;font-weight: bold; margin-top: 10px">季度</p>
+    <table class="gridtable">
+    <tr>
+        <th>支行</th>
+        <th>季度</th>
+        <th>营业额</th>
+    </tr>
+    {% for bank,dict in quarter_dict_loan.items() %}
+    {% for quarter,amount in dict.items() %}
+    <tr>
+        <td><center>{{ bank }}</center></td>
+        <td><center>{{ quarter }}</center></td>
+        <td><center>{{ amount }}</center></td>
+    </tr>
+    {% endfor %}
+    {% endfor %}
+    </table>
+    <p style="font-size:15px;font-weight: bold; margin-top: 10px">月度</p>
+    <table class="gridtable">
+    <tr>
+        <th>支行</th>
+        <th>月份</th>
+        <th>营业额</th>
+    </tr>
+    {% for bank,dict in month_dict_loan.items() %}
+    {% for month,amount in dict.items() %}
+    <tr>
+        <td><center>{{ bank }}</center></td>
+        <td><center>{{ month }}</center></td>
+        <td><center>{{ amount }}</center></td>
+    </tr>
+    {% endfor %}
+    {% endfor %}
+    </table>
+
+
+{% endblock %}

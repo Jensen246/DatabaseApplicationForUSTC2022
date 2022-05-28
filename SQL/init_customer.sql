@@ -47,21 +47,21 @@ insert into Account value ("002", 0, "2009/2/3", "合肥东支行");
 insert into Account value ("003", 0, "2010/11/4", "上海总部");
 */
 
-insert into DepositAccount value ("dp1", 30000, "2008/12/30", "合肥西支行", "0.035", 0);
+insert into DepositAccount value ("dp1", 30000, "2018/12/30", "合肥西支行", "0.035", 0);
 insert into Customer_DepositAccount value ("10188", "合肥西支行", "dp1", "2022/5/20");
 insert into Customer_DepositAccount value ("10294", "合肥西支行", "dp1", "2022/5/07");
 
-insert into DepositAccount value ("dp2", 40000, "2009/2/3", "合肥东支行", "0.03", 3);
-insert into DepositAccount value ("dp3", 20000, "2010/11/4", "上海总部", "0.05", 1);
+insert into DepositAccount value ("dp2", 40000, "2019/2/3", "合肥东支行", "0.03", 3);
+insert into DepositAccount value ("dp3", 20000, "2020/11/4", "上海总部", "0.05", 1);
 insert into Customer_DepositAccount value ("10294", "合肥东支行", "dp2", "2022/4/6");
 insert into Customer_DepositAccount value ("10294", "上海总部", "dp3", "2022/2/24");
 
 
 
-insert into CheckAccount value ("ck1", 20000, "2008/12/30", "合肥西支行", 50000);
+insert into CheckAccount value ("ck1", 20000, "2018/12/30", "合肥西支行", 50000);
 insert into Customer_CheckAccount value ("10188", "合肥西支行", "ck1", "2022/1/27");
 
-insert into CheckAccount value ("ck2", 70000, "2009/2/3", "合肥东支行", 50000);
-insert into CheckAccount value ("ck3", 40000, "2010/11/4", "上海总部", 10000);
+insert into CheckAccount value ("ck2", 70000, "2019/2/3", "合肥东支行", 50000);
+insert into CheckAccount value ("ck3", 40000, "2020/11/4", "上海总部", 10000);
 insert into Customer_CheckAccount value ("10294", "合肥东支行", "ck2", "2022/4/20");
 insert into Customer_CheckAccount value ("10294", "上海总部", "ck3", "2022/2/22");
