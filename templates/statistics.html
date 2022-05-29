@@ -54,7 +54,7 @@
     {% for quarter,amount in dict.items() %}
     <tr>
         <td><center>{{ bank }}</center></td>
-        <td><center>{{ quarter }}</center></td>
+        <td><center>{{ quarter[:5] }}第{{ quarter[5] }}季度</center></td>
         <td><center>{{ amount }}</center></td>
     </tr>
     {% endfor %}
@@ -108,7 +108,7 @@
     {% for quarter,amount in dict.items() %}
     <tr>
         <td><center>{{ bank }}</center></td>
-        <td><center>{{ quarter }}</center></td>
+        <td><center>{{ quarter[:5] }}第{{ quarter[5] }}季度</center></td>
         <td><center>{{ amount }}</center></td>
     </tr>
     {% endfor %}
@@ -162,7 +162,7 @@
     {% for quarter,amount in dict.items() %}
     <tr>
         <td><center>{{ bank }}</center></td>
-        <td><center>{{ quarter }}</center></td>
+        <td><center>{{ quarter[:5] }}第{{ quarter[5] }}季度</center></td>
         <td><center>{{ amount }}</center></td>
     </tr>
     {% endfor %}

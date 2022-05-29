@@ -10,7 +10,6 @@ numpy = "*"
 mysql = "*"
 wtforms = "*"
 email-validator = "*"
-arrow = "*"
 
 [dev-packages]
 
