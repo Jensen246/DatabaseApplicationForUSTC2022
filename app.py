@@ -1577,14 +1577,23 @@ def pay_loan(username, loan_id, loan_money, payed_money, status):
             flash("发放金额不能大于待支付金额")
             return redirect(url_for("pay_loan", status=status,
                                     username=username, loan_id=loan_id, loan_money=loan_money, payed_money=payed_money))
-        sql_str = "insert into payment value (\'" + loan_id + "\',\'" + date + "\',\'" + pay_money + "\')"
+        sql_str = "select Pay_money from payment where Loan_ID = \'" + loan_id + "\' and Pay_Date = \'" + date + "\'"
         cursor.execute(sql_str)
-        db.commit()
+        pay_money_flag = cursor.fetchall()
+        if len(pay_money_flag):
+            sql_str = "update payment set Pay_Money = \'" + str(float(pay_money_flag[0][0]) + float(pay_money)) + \
+                      "\' where Loan_ID = \'" + loan_id + "\' and Pay_Date = \'" + date + "\'"
+            cursor.execute(sql_str)
+            db.commit()
+        else:
+            sql_str = "insert into payment value (\'" + loan_id + "\',\'" + date + "\',\'" + pay_money + "\')"
+            cursor.execute(sql_str)
+            db.commit()
         if status == '0':
             sql_str = "update loan set Loan_Status = 1 where Loan_ID =\'" + loan_id + "\'"
             cursor.execute(sql_str)
             db.commit()
-        if pay_money == rest_money:
+        if float(pay_money) == rest_money:
             sql_str = "update loan set Loan_Status = 2 where Loan_ID =\'" + loan_id + "\'"
             cursor.execute(sql_str)
             db.commit()
