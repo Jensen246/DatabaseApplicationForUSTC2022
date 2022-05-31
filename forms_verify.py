@@ -74,9 +74,10 @@ def verify_edit(edit_type, verify_item):
             return False
     # 邮箱
     elif edit_type == "email":
-        if validate_email(verify_item):
+        try:
+            validate_email(verify_item)
             return True
-        else:
+        except:
             return False
     # 关系
     elif edit_type == "relation":
